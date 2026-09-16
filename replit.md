@@ -1,6 +1,6 @@
-# [Project name]
+# Tag commuter network
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Tag helps people who already share a route find one another, coordinate recurring rides privately, and keep backup matches available when plans change.
 
 ## Run & Operate
 
@@ -22,15 +22,25 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/tag-commuter-network/src/App.tsx` — frontend-only Tag experience, local persistence, demo matching data, and product flows.
+- `artifacts/tag-commuter-network/src/index.css` — Tag's visual system and responsive layout rules.
+- `artifacts/tag-commuter-network/vite.config.ts` — Vite entry and artifact routing.
+- `artifacts/api-server/` — shared API scaffold; Tag's current demo does not require server endpoints.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first release remains frontend-only so the full commuter journey can be experienced without account or backend setup.
+- Demo commute data is fictional and localStorage-backed; it is intentionally separate from any real personal contact data.
+- The public landing page and in-app experience share the same Tag commuter visual language but use different density levels for discovery versus task completion.
+- Exact addresses and phone numbers are never part of the matching model; the product uses approximate areas and mutual sharing states.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Public landing page explaining Tag's value proposition and privacy model.
+- Rider/driver onboarding for recurring routes, timing, days, frequency, and seats.
+- Route match discovery, compatibility details, connection requests, and demo acceptance.
+- Connected commute management, repeat-ride feedback, recurring commute setup, and backup matches.
+- Activity timeline, profile, safety center, invite sharing, founding tester signup, loading/empty/error states, and founder metrics.
 
 ## User preferences
 

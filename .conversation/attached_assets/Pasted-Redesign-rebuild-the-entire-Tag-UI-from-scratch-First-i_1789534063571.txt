@@ -1,0 +1,56 @@
+Redesign/rebuild the entire Tag UI from scratch.
+
+First inspect the existing build and preserve all working functionality, but do not patch the current UI. Replace the visual/UI architecture wherever necessary.
+
+#1 PRIORITY: PROFESSIONAL FIRST IMPRESSION
+
+The current website looks AI-generated/template-like. Fix this completely.
+
+Make Tag feel like a real, premium consumer startup, not an AI demo or generic SaaS landing page.
+
+Use:
+
+- Excellent typography and spacing
+- Strong visual hierarchy
+- Clean, restrained color palette
+- High-quality composition
+- Subtle, intentional animations
+- Consistent buttons, cards, borders, icons and states
+- Mobile-first responsive design
+- Real product screenshots/mockups where useful
+- Minimal gradients/glows; avoid excessive glassmorphism
+- No generic AI-style sections, excessive cards, or unnecessary text
+
+Think Apple/Stripe/Linear-level product polish, while still giving Tag its own identity.
+
+PRODUCT UX
+
+Also fix the UX problems discovered in the audit:
+
+- Make Tag's value proposition instantly understandable.
+- Make tagging/exchanging contacts extremely simple.
+- Make the post-tag experience valuable enough that users have a reason to return.
+- Reduce opportunities for users to simply exchange contact details once and bypass Tag.
+- Make privacy, trust and control obvious.
+- Improve onboarding, empty states, success states and error states.
+- Remove unnecessary friction and confusing UI.
+
+LANDING PAGE
+
+Rebuild the landing page around:
+
+1. Powerful hero + clear CTA
+2. Visual explanation of how Tag works
+3. Product demonstration
+4. Why Tag is different
+5. Key use cases
+6. Trust/privacy
+7. Strong final CTA
+
+Keep copy concise. Show the product rather than explaining it with paragraphs.
+
+IMPORTANT
+
+Do not give me a design proposal or explanation first. Actually implement the redesign.
+
+Prioritize visual quality and first impression above adding new features. The final result should look launch-ready and professionally designed, not AI-generated.
