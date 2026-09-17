@@ -3,7 +3,7 @@
 :root {
   font-family: 'Poppins', sans-serif;
   color: #141414;
-  background: #eeeeec;
+  background: #ededeb;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -16,373 +16,403 @@ html,
 body,
 #root {
   margin: 0;
+  width: 100%;
   min-height: 100%;
 }
 
 body {
-  min-width: 320px;
-  background: #eeeeec;
+  background: #ededeb;
 }
 
 button {
   font: inherit;
-}
-
-button,
-a {
+  color: inherit;
   -webkit-tap-highlight-color: transparent;
 }
 
-.app-shell {
+.viewport {
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  background: #eeeeec;
 }
 
-.app-screen {
-  position: relative;
-  width: 100%;
-  max-width: 393px;
-  min-height: 100vh;
+.screen {
+  width: 393px;
+  min-height: 852px;
   background: #fff;
-  overflow-x: hidden;
-  padding-bottom: 82px;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 74px;
 }
 
-.topbar {
-  height: 72px;
+.header {
+  height: 64px;
   padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fff;
 }
 
-.brand {
-  font-size: 22px;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
-
-.icon-button {
-  width: 40px;
-  height: 40px;
+.header-btn {
+  width: 32px;
+  height: 32px;
   border: 0;
+  padding: 0;
   background: transparent;
   display: grid;
   place-items: center;
-  padding: 0;
 }
 
-.hamburger {
-  width: 20px;
+.logo {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+}
+
+.menu-lines {
+  width: 18px;
   display: grid;
   gap: 4px;
 }
 
-.hamburger i {
+.menu-lines i {
   display: block;
-  width: 100%;
+  width: 18px;
   height: 1.5px;
-  background: #171717;
-  border-radius: 10px;
+  background: #141414;
+  border-radius: 2px;
 }
 
-.bell {
-  font-size: 20px;
-  transform: rotate(180deg);
-  display: block;
-}
-
-.notification-button {
+.notification {
   position: relative;
 }
 
-.notification-dot {
+.notification-icon {
+  font-size: 21px;
+  line-height: 1;
+  transform: rotate(45deg);
+}
+
+.notification b {
   position: absolute;
-  width: 7px;
-  height: 7px;
-  top: 8px;
-  right: 8px;
-  background: #141414;
+  top: 5px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  background: #141414;
+  border: 1.5px solid #fff;
 }
 
-.home-content {
-  padding: 4px 20px 28px;
+main {
+  padding: 0 20px;
 }
 
-.intro {
-  padding: 12px 0 22px;
+.hero {
+  padding: 15px 0 20px;
 }
 
-.eyebrow,
-.section-kicker {
-  margin: 0 0 7px;
-  font-size: 10px;
+.label {
+  display: block;
+  margin-bottom: 6px;
+  color: #999590;
+  font-size: 9px;
+  line-height: 1;
   font-weight: 600;
-  letter-spacing: 1.1px;
-  color: #88847e;
+  letter-spacing: 1px;
 }
 
-.intro h1 {
+.hero h1 {
   margin: 0;
   font-size: 25px;
-  line-height: 1.25;
+  line-height: 1.22;
   letter-spacing: -0.65px;
   font-weight: 600;
 }
 
-.intro-copy {
-  margin: 11px 0 0;
-  max-width: 340px;
-  color: #74716d;
-  font-size: 12px;
-  line-height: 1.65;
+.hero p {
+  margin: 9px 0 0;
+  max-width: 320px;
+  color: #77736e;
+  font-size: 11px;
+  line-height: 1.6;
 }
 
-.search-card {
+.journey-card {
   position: relative;
-  padding: 18px;
   border: 1px solid #dedbd6;
   border-radius: 8px;
+  padding: 16px;
   background: #fff;
   box-shadow: 0 5px 18px rgba(20, 20, 20, .055);
 }
 
-.field {
+.location-row {
+  height: 45px;
   display: flex;
   align-items: center;
-  min-height: 50px;
 }
 
-.field-icon {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+.location-mark {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  margin-right: 11px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  margin-right: 11px;
 }
 
-.origin-icon {
+.location-mark.origin {
   background: #f0eee9;
 }
 
-.origin-icon span {
+.location-mark.origin span {
   width: 8px;
   height: 8px;
-  border: 2px solid #222;
+  border: 2px solid #141414;
   border-radius: 50%;
 }
 
-.destination-icon {
+.location-mark.destination {
   background: #141414;
 }
 
-.destination-icon span {
+.location-mark.destination span {
   width: 7px;
   height: 7px;
-  background: #fff;
   border-radius: 50%;
+  background: #fff;
 }
 
-.field-content {
-  min-width: 0;
+.location-text {
   display: grid;
   gap: 1px;
 }
 
-.field-label {
-  color: #999590;
-  font-size: 9px;
+.location-text small {
+  color: #9a9690;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: .8px;
 }
 
-.field strong {
-  font-size: 13px;
+.location-text strong {
+  font-size: 12px;
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.route-line {
+.location-text .placeholder {
+  color: #a29e99;
+  font-weight: 400;
+}
+
+.connector {
   position: absolute;
-  left: 32px;
-  top: 65px;
-  height: 35px;
-  border-left: 1px dashed #c9c5bf;
+  left: 29px;
+  top: 55px;
+  height: 29px;
+  border-left: 1px dashed #cfcac3;
 }
 
-.primary-button {
+.connector span {
+  display: none;
+}
+
+.journey-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 11px;
+  border-top: 1px solid #eeeae5;
+}
+
+.journey-options button {
+  border: 1px solid #e3dfda;
+  border-radius: 6px;
+  min-height: 44px;
+  background: #faf9f7;
+  display: flex;
+  align-items: center;
+  padding: 7px 9px;
+  gap: 8px;
+  text-align: left;
+}
+
+.journey-options button > span {
+  font-size: 17px;
+  color: #55514c;
+}
+
+.journey-options button div {
+  display: grid;
+  gap: 1px;
+}
+
+.journey-options small {
+  color: #9b9791;
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: .7px;
+}
+
+.journey-options strong {
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.find-button {
   width: 100%;
-  height: 46px;
-  margin-top: 14px;
+  height: 43px;
   border: 0;
   border-radius: 6px;
+  margin-top: 11px;
   background: #141414;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
-.quick-section {
+.section {
   padding-top: 27px;
 }
 
-.section-heading {
+.quick-section {
+  padding-top: 25px;
+}
+
+.section-head {
+  min-height: 27px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 11px;
 }
 
-.section-heading h2 {
+.section-head h2 {
   margin: 0;
-  font-size: 16px;
-  line-height: 1.3;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -.15px;
   font-weight: 600;
-  letter-spacing: -.2px;
 }
 
-.section-heading > button {
+.section-head > button {
   border: 0;
   padding: 0;
   background: transparent;
-  color: #77736e;
-  font-size: 10px;
+  color: #85817b;
+  font-size: 9px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
-.quick-grid {
+.quick-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .quick-card {
-  min-height: 82px;
-  border: 1px solid #e1ded9;
+  min-height: 77px;
+  border: 1px solid #e2ded9;
   border-radius: 7px;
   background: #faf9f7;
+  padding: 11px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 13px;
+  gap: 9px;
   text-align: left;
 }
 
-.quick-card > span:last-child {
+.quick-symbol {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+  border-radius: 50%;
+  background: #ebe8e2;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+}
+
+.quick-card div {
+  min-width: 0;
   display: grid;
   gap: 3px;
 }
 
 .quick-card strong {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .quick-card small {
-  color: #898580;
-  font-size: 9px;
+  color: #8b8781;
+  font-size: 7px;
+  line-height: 1.4;
 }
 
-.quick-icon {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
-  border-radius: 50%;
+.people {
   display: grid;
-  place-items: center;
-  background: #e9e6e0;
-  font-size: 15px;
-  font-weight: 500;
+  gap: 7px;
 }
 
-.people-icon {
-  letter-spacing: -3px;
-  padding-right: 3px;
-}
-
-.matches-section {
-  padding-top: 29px;
-}
-
-.matches-section .section-heading {
-  align-items: center;
-}
-
-.matches-section .section-heading > div {
-  min-width: 0;
-}
-
-.matches-section h2 {
-  font-size: 15px;
-}
-
-.match-list {
-  display: grid;
-  gap: 8px;
-}
-
-.match-card {
-  position: relative;
-  min-height: 78px;
+.person {
+  min-height: 72px;
+  border: 1px solid #e2ded9;
+  border-radius: 7px;
+  padding: 10px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px;
-  border: 1px solid #e1ded9;
-  border-radius: 7px;
   background: #fff;
 }
 
 .avatar {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
+  background: #eeeae5;
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: #ece9e4;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 }
 
-.match-main {
+.person-info {
   min-width: 0;
   flex: 1;
 }
 
-.match-name {
+.person-title {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
-.match-name strong {
-  font-size: 11px;
+.person-title strong {
+  font-size: 10px;
   font-weight: 600;
 }
 
-.match-main p,
-.match-main small {
+.person-info p,
+.person-info small {
   display: block;
   margin: 2px 0 0;
-  color: #77736e;
-  font-size: 9px;
+  color: #7c7872;
+  font-size: 8px;
+  line-height: 1.35;
 }
 
-.verified {
-  width: 13px;
-  height: 13px;
+.check {
+  width: 12px;
+  height: 12px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -392,65 +422,60 @@ a {
   font-weight: 700;
 }
 
-.rating {
+.person-rating {
   align-self: flex-start;
-  font-size: 9px;
-  color: #66625d;
-  white-space: nowrap;
+  padding-top: 1px;
+  color: #69655f;
+  font-size: 8px;
 }
 
-.rating span {
+.person-rating span {
   margin-right: 2px;
 }
 
 .bottom-nav {
-  position: fixed;
-  z-index: 20;
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  right: 0;
   bottom: 0;
-  left: 50%;
-  width: min(393px, 100%);
   height: 68px;
-  transform: translateX(-50%);
+  border-top: 1px solid #e3e0db;
+  background: rgba(255, 255, 255, .98);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid #e4e1dc;
-  background: rgba(255,255,255,.97);
-  backdrop-filter: blur(12px);
 }
 
 .bottom-nav button {
   border: 0;
   background: transparent;
-  color: #9a9690;
+  padding: 7px 0 5px;
+  color: #aaa6a0;
   display: grid;
   place-content: center;
   gap: 2px;
-  font-size: 8px;
-  font-weight: 500;
 }
 
 .bottom-nav button span {
-  display: block;
   text-align: center;
   font-size: 17px;
   line-height: 19px;
 }
 
-.bottom-nav button.active {
-  color: #141414;
-  font-weight: 600;
+.bottom-nav button small {
+  font-size: 7px;
+  line-height: 10px;
+  font-weight: 500;
 }
 
-@media(min-width:394px) {
-  .app-screen {
+.bottom-nav button.selected {
+  color: #141414;
+}
+
+@media (min-width: 394px) {
+  .screen {
     margin: 20px 0;
-    min-height: calc(100vh - 40px);
     border-radius: 18px;
     box-shadow: 0 20px 70px rgba(0,0,0,.12);
-  }
-
-  .bottom-nav {
-    bottom: 20px;
-    border-radius: 0 0 18px 18px;
   }
 }

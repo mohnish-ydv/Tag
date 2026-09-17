@@ -1,200 +1,200 @@
 import { useState } from 'react'
 import './index.css'
 
-const people = [
+const matches = [
   {
-    name: 'Aarav',
+    name: 'Aarav Sharma',
     age: 22,
-    route: 'Patna → Delhi',
+    route: 'Patna → New Delhi',
     time: 'Tomorrow · 7:30 AM',
     rating: '4.9',
-    verified: true,
   },
   {
-    name: 'Ananya',
+    name: 'Ananya Singh',
     age: 21,
-    route: 'Patna → Delhi',
+    route: 'Patna → New Delhi',
     time: 'Tomorrow · 8:00 AM',
     rating: '4.8',
-    verified: true,
-  },
-  {
-    name: 'Rohan',
-    age: 24,
-    route: 'Patna → Noida',
-    time: 'Friday · 6:45 AM',
-    rating: '4.7',
-    verified: false,
   },
 ]
 
 function App() {
-  const [tab, setTab] = useState('home')
+  const [active, setActive] = useState('home')
 
   return (
-    <div className="app-shell">
-      <div className="app-screen">
+    <div className="viewport">
+      <div className="screen">
 
-        <header className="topbar">
-          <button className="icon-button" aria-label="Open menu">
-            <span className="hamburger">
+        <header className="header">
+          <button className="header-btn" aria-label="Menu">
+            <span className="menu-lines">
               <i />
               <i />
               <i />
             </span>
           </button>
 
-          <div className="brand">tag</div>
+          <div className="logo">tag</div>
 
-          <button
-            className="icon-button notification-button"
-            aria-label="Notifications"
-          >
-            <span className="bell">♧</span>
-            <span className="notification-dot" />
+          <button className="header-btn notification" aria-label="Notifications">
+            <span className="notification-icon">♢</span>
+            <b />
           </button>
         </header>
 
-        <main className="home-content">
+        <main>
 
-          <section className="intro">
-            <p className="eyebrow">WELCOME BACK</p>
-            <h1>Find your people.<br />Make the journey together.</h1>
-            <p className="intro-copy">
-              Discover people travelling your way and create a trusted connection before you go.
+          <section className="hero">
+            <span className="label">YOUR JOURNEY</span>
+            <h1>Find people.<br />Go together.</h1>
+            <p>
+              Connect with verified people travelling your way.
             </p>
           </section>
 
-          <section className="search-card">
-            <div className="field">
-              <div className="field-icon origin-icon">
+          <section className="journey-card">
+
+            <div className="location-row">
+              <div className="location-mark origin">
                 <span />
               </div>
-              <div className="field-content">
-                <span className="field-label">FROM</span>
+
+              <div className="location-text">
+                <small>FROM</small>
                 <strong>Patna</strong>
               </div>
             </div>
 
-            <div className="route-line">
+            <div className="connector">
               <span />
             </div>
 
-            <div className="field">
-              <div className="field-icon destination-icon">
+            <div className="location-row">
+              <div className="location-mark destination">
                 <span />
               </div>
-              <div className="field-content">
-                <span className="field-label">TO</span>
-                <strong>Where are you going?</strong>
+
+              <div className="location-text">
+                <small>TO</small>
+                <strong className="placeholder">
+                  Where are you going?
+                </strong>
               </div>
             </div>
 
-            <button className="primary-button">
+            <div className="journey-options">
+              <button>
+                <span>◷</span>
+                <div>
+                  <small>DATE</small>
+                  <strong>Any date</strong>
+                </div>
+              </button>
+
+              <button>
+                <span>◎</span>
+                <div>
+                  <small>PEOPLE</small>
+                  <strong>Anyone</strong>
+                </div>
+              </button>
+            </div>
+
+            <button className="find-button">
               Find people
             </button>
+
           </section>
 
-          <section className="quick-section">
-            <div className="section-heading">
-              <h2>Start with</h2>
-              <button>View all</button>
-            </div>
-
-            <div className="quick-grid">
-              <button className="quick-card">
-                <span className="quick-icon route-icon">
-                  ↗
-                </span>
-                <span>
-                  <strong>My journey</strong>
-                  <small>Create a trip</small>
-                </span>
-              </button>
-
-              <button className="quick-card">
-                <span className="quick-icon people-icon">
-                  ••
-                </span>
-                <span>
-                  <strong>Discover</strong>
-                  <small>Find people</small>
-                </span>
-              </button>
-            </div>
-          </section>
-
-          <section className="matches-section">
-            <div className="section-heading">
-              <div>
-                <p className="section-kicker">NEAR YOUR ROUTE</p>
-                <h2>People you may match with</h2>
-              </div>
+          <section className="section quick-section">
+            <div className="section-head">
+              <h2>Quick start</h2>
               <button>See all</button>
             </div>
 
-            <div className="match-list">
-              {people.map((person) => (
-                <article className="match-card" key={person.name}>
+            <div className="quick-row">
+
+              <button className="quick-card">
+                <span className="quick-symbol">＋</span>
+                <div>
+                  <strong>Create a journey</strong>
+                  <small>Tell people where you're going</small>
+                </div>
+              </button>
+
+              <button className="quick-card">
+                <span className="quick-symbol">⌕</span>
+                <div>
+                  <strong>Discover</strong>
+                  <small>Find people near your route</small>
+                </div>
+              </button>
+
+            </div>
+          </section>
+
+          <section className="section">
+            <div className="section-head">
+              <div>
+                <span className="label">RECOMMENDED</span>
+                <h2>People near your route</h2>
+              </div>
+
+              <button>View all</button>
+            </div>
+
+            <div className="people">
+
+              {matches.map((person) => (
+                <article className="person" key={person.name}>
+
                   <div className="avatar">
-                    {person.name[0]}
+                    {person.name.charAt(0)}
                   </div>
 
-                  <div className="match-main">
-                    <div className="match-name">
-                      <strong>{person.name}, {person.age}</strong>
-                      {person.verified && (
-                        <span className="verified">✓</span>
-                      )}
+                  <div className="person-info">
+                    <div className="person-title">
+                      <strong>
+                        {person.name}, {person.age}
+                      </strong>
+                      <span className="check">✓</span>
                     </div>
 
                     <p>{person.route}</p>
                     <small>{person.time}</small>
                   </div>
 
-                  <div className="rating">
+                  <div className="person-rating">
                     <span>★</span>
                     {person.rating}
                   </div>
+
                 </article>
               ))}
+
             </div>
           </section>
 
         </main>
 
         <nav className="bottom-nav">
-          <button
-            className={tab === 'home' ? 'active' : ''}
-            onClick={() => setTab('home')}
-          >
-            <span>⌂</span>
-            Home
-          </button>
 
-          <button
-            className={tab === 'discover' ? 'active' : ''}
-            onClick={() => setTab('discover')}
-          >
-            <span>⌕</span>
-            Discover
-          </button>
+          {[
+            ['home', '⌂', 'Home'],
+            ['discover', '⌕', 'Discover'],
+            ['tags', '◇', 'Tags'],
+            ['profile', '○', 'Profile'],
+          ].map(([id, icon, text]) => (
+            <button
+              key={id}
+              className={active === id ? 'selected' : ''}
+              onClick={() => setActive(id)}
+            >
+              <span>{icon}</span>
+              <small>{text}</small>
+            </button>
+          ))}
 
-          <button
-            className={tab === 'tags' ? 'active' : ''}
-            onClick={() => setTab('tags')}
-          >
-            <span>◇</span>
-            Tags
-          </button>
-
-          <button
-            className={tab === 'profile' ? 'active' : ''}
-            onClick={() => setTab('profile')}
-          >
-            <span>○</span>
-            Profile
-          </button>
         </nav>
 
       </div>
