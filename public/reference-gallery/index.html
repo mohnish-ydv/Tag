@@ -1,0 +1,162 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tag — Easy Ride Reference Gallery</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#111;color:#fff;font-family:system-ui,sans-serif}
+header{position:sticky;top:0;z-index:10;padding:18px 20px;background:#181818;border-bottom:1px solid #333}
+h1{margin:0;font-size:20px}
+p{margin:5px 0 0;color:#999;font-size:13px}
+.grid{padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px}
+.card{background:#1b1b1b;border:1px solid #333;border-radius:12px;padding:10px;cursor:pointer}
+.card:hover{border-color:#777}
+.card img{display:block;width:100%;height:auto;border-radius:7px;background:#fff}
+.name{font-size:12px;color:#ccc;margin-top:9px;line-height:1.4;word-break:break-word}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:20;overflow:auto;padding:30px}
+.overlay.open{display:flex;justify-content:center;align-items:flex-start}
+.overlay img{max-width:min(393px,95vw);height:auto}
+.close{position:fixed;top:15px;right:18px;font-size:30px;color:white;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+<h1>Tag — Complete Easy Ride Visual Reference</h1>
+<p id="count"></p>
+</header>
+<main class="grid" id="grid"></main>
+<div class="overlay" id="overlay">
+<div class="close" onclick="closePreview()">×</div>
+<img id="preview">
+</div>
+<script>
+const files = [
+"31-700_02_Onboarding.png",
+"31-736_01_Onboarding.png",
+"31-869_03_Onboarding.png",
+"37-493_04_Enable_location.png",
+"48-630_05_Welcome__screen.png",
+"50-747_06_sign_up.png",
+"54-679_07_verify_otp.png",
+"54-966_08_verify_otp.png",
+"54-1114_09_set_password.png",
+"54-1314_10_Complete_your_profile.png",
+"56-1018_11_sign_in.png",
+"56-1297_12_send_verification.png",
+"56-1421_13_phone_verify_otp.png",
+"56-1438_14_phone_verify_otp.png",
+"56-1603_15_set_new_password.png",
+"60-2011_16_home_screen_Transport.png",
+"60-3058_17_home_screen_delivery.png",
+"63-3801_19_Location_screen.png",
+"63-4444_20_Location_screen_input.png",
+"63-4833_21_Location_screen_confirm.png",
+"63-5647_22_select_transport.png",
+"63-5733_23_select_avaiable_car.png",
+"63-6235_24_avaiable_car_list.png",
+"63-6476_25_car_details.png",
+"63-7002_26_request_rent.png",
+"63-7255_27_request_rent.png",
+"63-7378_28_Thank_you.png",
+"68-3452_29_Location_screen_confirm.png",
+"68-3695_30_Message_screen.png",
+"69-3187_31_Calling_screen.png",
+"69-3736_32_Talk_screen.png",
+"69-4953_33_payment.png",
+"69-5068_34_Location_screen.png",
+"69-5473_35_Review_Screen.png",
+"69-5765_36_Thank_you_screen.png",
+"77-3715_37_Favourite.png",
+"77-4814_38_Wallet.png",
+"77-5759_39_Add_Amount.png",
+"78-4235_40_bank.png",
+"78-4327_41_scuessful.png",
+"80-4370_42_Offer.png",
+"80-4654_43_Profile.png",
+"82-4656_44_menu_screen.png",
+"82-6206_45_History_Upcoming.png",
+"84-5001_46_History_Completed.png",
+"84-5085_47_History_Cancelled.png",
+"85-5345_49_complain_scuessful.png",
+"85-5433_50_Referral.png",
+"85-5681_51_About_Us.png",
+"92-5624_52_Settings.png",
+"92-5761_53_Password.png",
+"92-5877_54_language.png",
+"92-6103_55_Privacy_policy.png",
+"92-6249_56_Contact_US.png",
+"92-6335_57__Delete_account.png",
+"92-6405_58_Help_and_Support.png",
+"143-5805_12_Forget_Password.png",
+"144-5886_Splash_Screens.png",
+"242-6163_Light_Mode.png",
+"275-6530_Redirect_Home_Screen.png",
+"278-6245_42_Offer.png",
+"282-7940_27_request_rent.png",
+"282-8141_Cancel_Ride.png",
+"287-6581_Cancel_Ride.png",
+"291-6797_Address.png",
+"291-8397_18_notification_screen.png",
+"291-8497_Search.png",
+"291-8695_Search.png",
+"291-8909_Search.png",
+"291-9326_58_Help_and_Support.png",
+"291-9335_57__Delete_account.png",
+"291-9341_56_Contact_US.png",
+"291-9354_55_Privacy_policy.png",
+"291-9360_54_language.png",
+"291-9373_53_Password.png",
+"291-9381_52_Settings.png",
+"291-9393_51_About_Us.png",
+"291-9401_50_Referral.png",
+"291-9411_49_complain_scuessful.png",
+"291-9979_29_Location_screen_confirm.png",
+"291-10147_28_Thank_you.png",
+"291-10157_27_request_rent.png",
+"291-10195_27_request_rent.png",
+"291-10229_26_request_rent.png",
+"291-10265_25_car_details.png",
+"291-10289_24_avaiable_car_list.png",
+"291-10298_23_select_avaiable_car.png",
+"291-10307_22_select_transport.png",
+"291-10331_21_Location_screen_confirm.png",
+"291-10463_20_Location_screen_input.png",
+"291-10627_19_Location_screen.png",
+"291-10794_18_notification_screen.png",
+"291-10859_17_home_screen_delivery.png",
+"291-11015_16_home_screen_Transport.png",
+"291-11150_15_set_new_password.png",
+"291-11161_14_phone_verify_otp.png",
+"291-11196_12_Forget_Password.png",
+"291-11226_12_send_verification.png",
+];
+
+const grid=document.getElementById('grid');
+document.getElementById('count').textContent=`${files.length} rendered reference screens`;
+
+files.forEach(file=>{
+  const card=document.createElement('div');
+  card.className='card';
+  const img=document.createElement('img');
+  img.loading='lazy';
+  img.src='./'+encodeURIComponent(file);
+  img.onclick=()=>openPreview(img.src);
+  const name=document.createElement('div');
+  name.className='name';
+  name.textContent=file;
+  card.append(img,name);
+  grid.appendChild(card);
+});
+
+function openPreview(src){
+ document.getElementById('preview').src=src;
+ document.getElementById('overlay').classList.add('open');
+}
+function closePreview(){
+ document.getElementById('overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
