@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import './index.css'
 
-const matches = [
+const savedPlaces = [
+  { icon: '⌂', label: 'Home' },
+  { icon: '▣', label: 'College' },
+  { icon: '⌖', label: 'Work' },
+]
+
+const people = [
   {
     name: 'Aarav Sharma',
     age: 22,
@@ -18,164 +24,146 @@ const matches = [
   },
 ]
 
+function MapBackground() {
+  return (
+    <div className="map">
+      <div className="map-grid" />
+
+      <div className="road road-a" />
+      <div className="road road-b" />
+      <div className="road road-c" />
+      <div className="road road-d" />
+      <div className="road road-e" />
+
+      <span className="street s1">Fraser Road</span>
+      <span className="street s2">Bailey Road</span>
+      <span className="street s3">Station Road</span>
+      <span className="street s4">Exhibition Road</span>
+
+      <div className="map-water" />
+
+      <div className="map-car car-one">●</div>
+      <div className="map-car car-two">●</div>
+      <div className="map-car car-three">●</div>
+
+      <div className="current-location">
+        <span className="location-ring" />
+        <span className="location-core" />
+      </div>
+
+      <button className="map-location" aria-label="Current location">
+        ⌖
+      </button>
+    </div>
+  )
+}
+
 function App() {
   const [active, setActive] = useState('home')
+  const [destination, setDestination] = useState('')
 
   return (
     <div className="viewport">
       <div className="screen">
 
-        <header className="header">
-          <button className="header-btn" aria-label="Menu">
-            <span className="menu-lines">
-              <i />
-              <i />
-              <i />
-            </span>
+        <MapBackground />
+
+        <header className="floating-header">
+          <button className="floating-button menu-button" aria-label="Menu">
+            <span />
+            <span />
+            <span />
           </button>
 
-          <div className="logo">tag</div>
+          <div className="brand">
+            <span>tag</span>
+          </div>
 
-          <button className="header-btn notification" aria-label="Notifications">
-            <span className="notification-icon">♢</span>
-            <b />
+          <button
+            className="floating-button notification-button"
+            aria-label="Notifications"
+          >
+            <span className="bell">♢</span>
+            <i />
           </button>
         </header>
 
-        <main>
+        <div className="map-label">
+          <span className="map-label-dot" />
+          Patna
+        </div>
 
-          <section className="hero">
-            <span className="label">YOUR JOURNEY</span>
-            <h1>Find people.<br />Go together.</h1>
-            <p>
-              Connect with verified people travelling your way.
-            </p>
-          </section>
+        <section className="bottom-sheet">
 
-          <section className="journey-card">
+          <div className="sheet-handle" />
 
-            <div className="location-row">
-              <div className="location-mark origin">
-                <span />
-              </div>
-
-              <div className="location-text">
-                <small>FROM</small>
-                <strong>Patna</strong>
-              </div>
+          <div className="sheet-heading">
+            <div>
+              <span className="eyebrow">YOUR JOURNEY</span>
+              <h1>Where are you going?</h1>
             </div>
 
-            <div className="connector">
-              <span />
-            </div>
-
-            <div className="location-row">
-              <div className="location-mark destination">
-                <span />
-              </div>
-
-              <div className="location-text">
-                <small>TO</small>
-                <strong className="placeholder">
-                  Where are you going?
-                </strong>
-              </div>
-            </div>
-
-            <div className="journey-options">
-              <button>
-                <span>◷</span>
-                <div>
-                  <small>DATE</small>
-                  <strong>Any date</strong>
-                </div>
-              </button>
-
-              <button>
-                <span>◎</span>
-                <div>
-                  <small>PEOPLE</small>
-                  <strong>Anyone</strong>
-                </div>
-              </button>
-            </div>
-
-            <button className="find-button">
-              Find people
+            <button className="sheet-action" aria-label="Search">
+              ⌕
             </button>
+          </div>
 
-          </section>
-
-          <section className="section quick-section">
-            <div className="section-head">
-              <h2>Quick start</h2>
-              <button>See all</button>
-            </div>
-
-            <div className="quick-row">
-
-              <button className="quick-card">
-                <span className="quick-symbol">＋</span>
-                <div>
-                  <strong>Create a journey</strong>
-                  <small>Tell people where you're going</small>
-                </div>
+          <div className="saved-places">
+            {savedPlaces.map((place) => (
+              <button
+                className="place-chip"
+                key={place.label}
+                onClick={() => setDestination(place.label)}
+              >
+                <span>{place.icon}</span>
+                {place.label}
               </button>
+            ))}
+          </div>
 
-              <button className="quick-card">
-                <span className="quick-symbol">⌕</span>
-                <div>
-                  <strong>Discover</strong>
-                  <small>Find people near your route</small>
+          <button className="destination-input">
+            <span className="destination-icon">
+              <i />
+            </span>
+
+            <span className={destination ? 'destination-value' : 'destination-placeholder'}>
+              {destination || 'Where do you want to go?'}
+            </span>
+
+            <span className="destination-arrow">›</span>
+          </button>
+
+          <div className="sheet-divider" />
+
+          <div className="nearby-header">
+            <div>
+              <span className="eyebrow">NEAR YOUR ROUTE</span>
+              <h2>People travelling nearby</h2>
+            </div>
+
+            <button className="see-all">See all</button>
+          </div>
+
+          <div className="people-row">
+            {people.map((person) => (
+              <button className="person-card" key={person.name}>
+                <div className="person-avatar">
+                  {person.name[0]}
                 </div>
+
+                <div className="person-copy">
+                  <strong>{person.name}, {person.age}</strong>
+                  <span>{person.time}</span>
+                </div>
+
+                <span className="person-rating">
+                  ★ {person.rating}
+                </span>
               </button>
+            ))}
+          </div>
 
-            </div>
-          </section>
-
-          <section className="section">
-            <div className="section-head">
-              <div>
-                <span className="label">RECOMMENDED</span>
-                <h2>People near your route</h2>
-              </div>
-
-              <button>View all</button>
-            </div>
-
-            <div className="people">
-
-              {matches.map((person) => (
-                <article className="person" key={person.name}>
-
-                  <div className="avatar">
-                    {person.name.charAt(0)}
-                  </div>
-
-                  <div className="person-info">
-                    <div className="person-title">
-                      <strong>
-                        {person.name}, {person.age}
-                      </strong>
-                      <span className="check">✓</span>
-                    </div>
-
-                    <p>{person.route}</p>
-                    <small>{person.time}</small>
-                  </div>
-
-                  <div className="person-rating">
-                    <span>★</span>
-                    {person.rating}
-                  </div>
-
-                </article>
-              ))}
-
-            </div>
-          </section>
-
-        </main>
+        </section>
 
         <nav className="bottom-nav">
 
@@ -183,15 +171,16 @@ function App() {
             ['home', '⌂', 'Home'],
             ['discover', '⌕', 'Discover'],
             ['tags', '◇', 'Tags'],
+            ['activity', '◷', 'Activity'],
             ['profile', '○', 'Profile'],
-          ].map(([id, icon, text]) => (
+          ].map(([id, icon, label]) => (
             <button
               key={id}
-              className={active === id ? 'selected' : ''}
+              className={active === id ? 'active' : ''}
               onClick={() => setActive(id)}
             >
-              <span>{icon}</span>
-              <small>{text}</small>
+              <span className="nav-icon">{icon}</span>
+              <small>{label}</small>
             </button>
           ))}
 
