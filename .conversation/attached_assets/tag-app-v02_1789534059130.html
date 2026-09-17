@@ -1,0 +1,1445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#15181B">
+<title>TAG — Share the ride. Split the cost.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   TAG v0.2 — design system
+   Ink on warm paper, one deep commuter-green, Space Grotesk display.
+   ===================================================================== */
+:root{
+  --ink:#15181B; --ink-2:#3A403C; --muted:#6A706C; --faint:#9BA09B;
+  --paper:#F6F5F1; --surface:#FFFFFF; --line:#E5E3DB; --wash:#EFEDE6;
+  --brand:#0E7A52; --brand-deep:#0A5C3E; --brand-tint:#E3F1E9; --brand-line:#BFDCCB;
+  --warn:#9A6A10; --warn-tint:#FBF3DF;
+  --err:#B3372A; --err-tint:#FBEDEA;
+  --r:16px;
+  --disp:'Space Grotesk',-apple-system,'Segoe UI',sans-serif;
+  --body:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--body); background:#E9E7E0; color:var(--ink);
+  font-size:16px; line-height:1.55; min-height:100vh;
+}
+#frame{max-width:480px;margin:0 auto;background:var(--paper);min-height:100vh;position:relative;
+  box-shadow:0 0 0 1px rgba(21,24,27,.05),0 18px 60px rgba(21,24,27,.10)}
+@media(max-width:492px){#frame{box-shadow:none}body{background:var(--paper)}}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+input,textarea{width:100%;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;
+  padding:14px 16px;font-size:16px;outline:none;transition:border-color .15s}
+input:focus,textarea:focus{border-color:var(--ink)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+a{color:var(--brand-deep);text-decoration:none;font-weight:500}
+
+/* ---- type ---- */
+.display{font-family:var(--disp);font-weight:700;letter-spacing:-.035em;line-height:1.02;font-size:clamp(40px,11.5vw,48px)}
+.h1{font-family:var(--disp);font-weight:700;letter-spacing:-.03em;line-height:1.1;font-size:30px}
+.h2{font-family:var(--disp);font-weight:700;letter-spacing:-.02em;font-size:22px}
+.h3{font-weight:600;font-size:16.5px;letter-spacing:-.01em}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--brand-deep)}
+.eyebrow.gray{color:var(--faint)}
+.lead{font-size:17px;color:var(--ink-2);line-height:1.55}
+.sub{font-size:15px;color:var(--muted)}
+.small{font-size:13.5px}
+.dim{color:var(--muted)}
+.center{text-align:center}
+.mt4{margin-top:4px}.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}.mt28{margin-top:28px}.mt36{margin-top:36px}
+
+/* ---- buttons ---- */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;
+  border-radius:14px;font-size:16.5px;font-weight:600;letter-spacing:-.01em;font-family:var(--body);
+  transition:transform .06s ease;user-select:none}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-ink{background:var(--ink);color:#fff}
+.btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn-soft{background:var(--wash);color:var(--ink)}
+.btn-quiet{background:transparent;color:var(--muted);min-height:46px;font-weight:500}
+.btn-danger{background:transparent;color:var(--err);border:1.5px solid var(--err)}
+.btn-sm{min-height:44px;font-size:15px;border-radius:12px}
+.btn-row{display:flex;gap:10px}
+.btn svg{width:19px;height:19px;stroke:currentColor;flex:0 0 auto}
+
+/* ---- structure ---- */
+.wrap{padding:0 22px}
+.screen-head{padding:16px 22px 8px;display:flex;align-items:center;gap:12px;min-height:62px}
+.screen-head .title{font-family:var(--disp);font-size:23px;font-weight:700;letter-spacing:-.02em;flex:1}
+.back{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);background:var(--surface);flex:0 0 auto}
+.back svg{width:19px;height:19px;stroke:var(--ink)}
+#app>.screen{animation:rise .26s cubic-bezier(.2,.7,.2,1)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- cards ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.card+.card{margin-top:12px}
+.card.quiet{background:transparent}
+.hr{height:1px;background:var(--line);margin:14px 0}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;border-radius:6px;padding:3px 8px}
+.pill.demo{color:var(--warn);background:var(--warn-tint)}
+.pill.live{color:var(--brand-deep);background:var(--brand-tint)}
+.pill.gray{color:var(--muted);background:var(--wash)}
+.pill.err{color:var(--err);background:var(--err-tint)}
+
+/* ---- route viz ---- */
+.viz{display:block;width:100%;height:auto}
+.viz .rp{fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;opacity:.9}
+.viz .rp.mut{opacity:.45}
+.viz .rm{fill:none;stroke:var(--brand);stroke-width:3.5;stroke-linecap:round}
+.viz .nd{fill:var(--surface);stroke:var(--ink);stroke-width:2}
+.viz .nd.brand{fill:var(--brand);stroke:var(--brand)}
+.viz text{font-family:var(--body);font-size:11px;fill:var(--muted);font-weight:500}
+.viz .lb{font-weight:600;fill:var(--ink);font-size:12px}
+.viz .draw{stroke-dasharray:600;stroke-dashoffset:600;animation:draw 1.1s .15s cubic-bezier(.4,0,.2,1) forwards}
+.viz .draw.d2{animation-delay:.4s}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+/* ---- chips / steps ---- */
+.option{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:18px;transition:border-color .15s}
+.option:active{border-color:var(--ink)}
+.option .ic{width:48px;height:48px;border-radius:14px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.option .ic svg{width:23px;height:23px;stroke:var(--brand-deep)}
+.option .t{font-family:var(--disp);font-size:18px;font-weight:600;letter-spacing:-.01em}
+.option .d{font-size:14px;color:var(--muted);margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.timeinput{display:flex;align-items:center;gap:12px}
+.timeinput input{font-size:21px;font-weight:600;padding:12px 16px;width:auto;flex:1}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:9px 16px;
+  font-size:15px;font-weight:500;color:var(--ink-2)}
+.chip.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.chip.mini{padding:6px 12px;font-size:13px}
+.steps{display:flex;gap:5px}
+.steps i{flex:1;height:3px;border-radius:99px;background:var(--line)}
+.steps i.on{background:var(--brand)}
+.field{margin-top:18px}
+.field label{display:block;font-size:13px;font-weight:600;letter-spacing:.01em;color:var(--ink-2);margin-bottom:7px}
+.choice{display:block;width:100%;text-align:center;border:1.5px solid var(--line);background:var(--surface);
+  border-radius:14px;padding:17px 10px;font-size:16px;font-weight:600}
+.choice.on{border-color:var(--ink);background:var(--ink);color:#fff}
+
+/* ---- compare rows (your commute vs theirs) ---- */
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp .col{background:var(--wash);border-radius:12px;padding:12px 14px}
+.cmp .col .who{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.cmp .col .what{font-size:15px;font-weight:600;margin-top:4px;line-height:1.4}
+
+/* ---- meters / score ---- */
+.meter{height:5px;background:var(--wash);border-radius:99px;overflow:hidden;flex:1}
+.meter i{display:block;height:100%;background:var(--brand);border-radius:99px}
+.mrow{display:flex;align-items:center;gap:12px;margin:9px 0}
+.mrow .ml{flex:0 0 118px;font-size:13.5px;color:var(--muted)}
+.mrow .mv{flex:0 0 34px;text-align:right;font-size:13.5px;font-weight:600}
+.score{font-family:var(--disp);font-weight:700;font-size:26px;letter-spacing:-.02em;color:var(--brand-deep)}
+
+/* ---- match card ---- */
+.match{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;
+  animation:rise .3s both}
+.match:nth-child(2){animation-delay:.05s}
+.match:nth-child(3){animation-delay:.1s}
+.match .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.match .route{font-family:var(--disp);font-size:18px;font-weight:700;letter-spacing:-.01em;margin-top:6px}
+
+/* ---- lists / timeline ---- */
+.rowitem{display:flex;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+.rowitem:last-child{border-bottom:none}
+.tl{list-style:none}
+.tl li{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tl li:last-child{border-bottom:none}
+.tl .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);margin-top:6px;flex:0 0 auto}
+.tl .dot.gray{background:var(--faint)}
+.tl .when{font-size:12px;color:var(--faint);font-weight:500}
+.tl .what{font-size:15px;font-weight:600}
+
+/* ---- settings ---- */
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.srow:last-child{border-bottom:none}
+.switch{width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;flex:0 0 auto;transition:background .2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}
+.switch.on{background:var(--brand)}
+.switch.on::after{left:21px}
+
+/* ---- nav ---- */
+#nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
+  background:rgba(246,245,241,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);
+  display:none;z-index:40;padding-bottom:env(safe-area-inset-bottom)}
+#nav.show{display:flex}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;
+  color:var(--faint);font-size:11px;font-weight:500}
+#nav button svg{width:22px;height:22px;stroke:currentColor}
+#nav button.on{color:var(--brand-deep)}
+
+/* ---- sheet / toast ---- */
+#overlay{position:fixed;inset:0;background:rgba(21,24,27,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}
+#overlay.show{display:flex}
+.sheet{width:100%;max-width:480px;background:var(--paper);border-radius:20px 20px 0 0;
+  padding:22px 22px calc(24px + env(safe-area-inset-bottom));animation:up .25s cubic-bezier(.2,.7,.2,1);
+  max-height:88vh;overflow:auto}
+@keyframes up{from{transform:translateY(36px);opacity:.4}to{transform:none;opacity:1}}
+.grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 16px}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-90px);background:var(--ink);
+  color:#fff;font-size:14px;font-weight:500;border-radius:12px;padding:11px 18px;z-index:80;
+  transition:transform .3s cubic-bezier(.2,.7,.2,1);max-width:88vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ---- skeletons ---- */
+@keyframes pulse{50%{opacity:.45}}
+.skel{background:var(--wash);border-radius:10px;animation:pulse 1.2s ease infinite}
+
+/* ---- admin ---- */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .n{font-family:var(--disp);font-size:24px;font-weight:700;letter-spacing:-.02em}
+.stat .l{font-size:12.5px;color:var(--muted);margin-top:1px}
+.fr{display:flex;align-items:center;gap:10px;margin:8px 0}
+.fr .fl{flex:0 0 116px;font-size:13px;color:var(--ink-2)}
+.fr .bar{flex:1;height:20px;background:var(--wash);border-radius:5px;overflow:hidden;position:relative}
+.fr .bar i{position:absolute;inset:0;background:var(--brand);border-radius:5px}
+.fr .fc{flex:0 0 30px;text-align:right;font-size:13px;font-weight:600}
+.dtable .dr{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.dtable .dr:last-child{border-bottom:none}
+.dtable .dr b{font-weight:600}
+.footnote{text-align:center;font-size:12.5px;color:var(--faint);padding:8px 0 26px;line-height:1.6}
+.notice{display:flex;gap:12px;background:var(--brand-tint);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--brand-deep)}
+.notice svg{width:19px;height:19px;stroke:var(--brand-deep);flex:0 0 auto;margin-top:2px}
+.notice.warn{background:var(--warn-tint);color:var(--warn)}
+.notice.warn svg{stroke:var(--warn)}
+.errorbox{background:var(--err-tint);border-radius:14px;padding:20px;text-align:center}
+.errorbox .t{font-weight:600;font-size:16.5px;color:var(--err)}
+.errorbox .d{font-size:14px;color:var(--err);opacity:.75;margin-top:4px}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--ink);color:#fff;font-weight:600;font-size:16px;
+  display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.avatar.sm{width:34px;height:34px;font-size:13px}
+.avatar.lg{width:60px;height:60px;font-size:22px}
+.empty-art{width:60px;height:60px;border-radius:18px;background:var(--brand-tint);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.empty-art svg{width:28px;height:28px;stroke:var(--brand-deep)}
+input[type=checkbox]{width:auto;accent-color:var(--brand)}
+.consent{display:flex;gap:12px;align-items:flex-start;background:var(--wash);border-radius:12px;padding:14px}
+.consent input{margin-top:3px}
+</style>
+</head>
+<body>
+<div id="frame">
+  <div id="app"></div>
+  <nav id="nav"></nav>
+  <div id="overlay"><div class="sheet" id="sheet"></div></div>
+  <div id="toast"></div>
+</div>
+<script>
+/* =====================================================================
+   TAG v0.2 — core: icons, route visualizations, state, demo data,
+   matching engine, analytics. All demo users are FICTIONAL (demo mode).
+   ===================================================================== */
+'use strict';
+
+/* ---------------- helpers ---------------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>'id'+Math.random().toString(36).slice(2,10);
+const DAY_ORDER=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const AREAS=['Kankarbagh','Rajendra Nagar','Bailey Road','Danapur','Boring Road','Patna Airport','Patna Junction','Patliputra','Gandhi Maidan','Patna'];
+function fmtTime(t){ if(!t) return ''; let[h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; h=h%12||12; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' '+ap; }
+function mins(t){ if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+m; }
+function fmtDays(days){ if(!days||!days.length) return 'No days yet';
+  const s=[...days].sort((a,b)=>DAY_ORDER.indexOf(a)-DAY_ORDER.indexOf(b));
+  const wd=['Mon','Tue','Wed','Thu','Fri'];
+  if(s.length===7) return 'Every day';
+  if(s.length===5&&wd.every(d=>s.includes(d))) return 'Mon–Fri';
+  if(s.length===6&&wd.every(d=>s.includes(d))) return 'Mon–Sat';
+  return s.join(', ');
+}
+function niceDate(ts){ return new Date(ts).toLocaleDateString('en-IN',{month:'short',day:'numeric'}); }
+function todayStr(){ return new Date().toLocaleDateString('en-IN',{month:'short',day:'numeric'}); }
+function nextRideDay(days){ // next matching weekday after today
+  for(let k=1;k<=7;k++){ const d=new Date(); d.setDate(d.getDate()+k);
+    const name=DAY_ORDER[(d.getDay()+6)%7];
+    if(days.includes(name)) return k===1?'Tomorrow':d.toLocaleDateString('en-IN',{weekday:'long'}); }
+  return '—';
+}
+
+/* ---------------- icons ---------------- */
+function ic(n){ const P={
+  car:'<path d="M5 16l1.5-6a2 2 0 0 1 2-1.6h7A2 2 0 0 1 17.5 10L19 16v3h-2m-12 0v3H3v-3m2 0h10m1-5H4" stroke-linecap="round" stroke-linejoin="round"/>',
+  person:'<circle cx="12" cy="7.5" r="3.5"/><path d="M5 20c.8-4 3.5-6 7-6s6.2 2 7 6" stroke-linecap="round"/>',
+  home:'<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z" stroke-linejoin="round"/>',
+  route:'<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.5" stroke-linecap="round"/>',
+  activity:'<path d="M3 12h4l2.5-7 5 14 2.5-7H21" stroke-linecap="round" stroke-linejoin="round"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.4 4-6.5 8-6.5s7 2.1 8 6.5" stroke-linecap="round"/>',
+  shield:'<path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6z" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>',
+  arrow:'<path d="M12 4v16m0 0l-6-6m6 6l6-6" stroke-linecap="round" stroke-linejoin="round"/>',
+  left:'<path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/>',
+  check:'<path d="M5 12.5l4.5 4.5L19 7.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  clock:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  share:'<circle cx="6" cy="12" r="2.5"/><circle cx="17.5" cy="6" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/><path d="M8.2 10.9l7-4M8.2 13.1l7 4" stroke-linecap="round"/>',
+  backup:'<path d="M12 3a9 9 0 1 1-8.5 6" stroke-linecap="round"/><path d="M3 3v6h6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8v4l3 2" stroke-linecap="round" stroke-linejoin="round"/>',
+  flag:'<path d="M5 21V4m0 0h11l-2 3.5L16 11H5" stroke-linecap="round" stroke-linejoin="round"/>',
+  gauge:'<path d="M5 19a9 9 0 1 1 14 0" stroke-linecap="round"/><path d="M12 13l3.5-4.5" stroke-linecap="round"/>',
+  info:'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.7v.3" stroke-linecap="round"/>',
+  book:'<path d="M6 4h12v16H6a2 2 0 0 1 0-4h12" stroke-linejoin="round"/>',
+  pin:'<path d="M12 21s-6.5-5.4-6.5-10.5a6.5 6.5 0 1 1 13 0C18.5 15.6 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/>'
+}[n]||''; return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">'+P+'</svg>'; }
+
+/* brand mark: two routes becoming one */
+function mark(sz){ sz=sz||30; return `<svg width="${sz}" height="${sz}" viewBox="0 0 30 30" fill="none" aria-label="TAG">
+<rect width="30" height="30" rx="9" fill="#0E7A52"/>
+<path d="M8 10.5c4 0 4 4.5 7.5 4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M8 19.5c4 0 4-4.5 7.5-4.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+<path d="M15.5 15h6" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+<circle cx="8" cy="10.5" r="1.6" fill="#fff"/><circle cx="8" cy="19.5" r="1.6" fill="#fff"/><circle cx="23" cy="15" r="1.9" fill="#fff"/>
+</svg>`; }
+
+/* ---------------- route visualizations ---------------- */
+/* hero: two commutes merging into one destination */
+function vizHero(){ return `<svg class="viz" viewBox="0 0 360 200" role="img" aria-label="Two commute routes merging into one">
+  <path class="rp draw" d="M24 60 C110 60 168 62 232 100"/>
+  <path class="rp mut draw d2" d="M24 150 C110 150 168 148 232 100"/>
+  <path class="rm draw d2" d="M232 100 H 322"/>
+  <circle class="nd" cx="24" cy="60" r="5"/><circle class="nd" cx="24" cy="150" r="5"/>
+  <circle class="nd brand" cx="326" cy="100" r="6"/>
+  <text class="lb" x="24" y="42">Kankarbagh</text><text x="24" y="76">8:15 AM · Mon–Fri</text>
+  <text class="lb" x="24" y="172">Rajendra Nagar</text><text x="24" y="136" opacity=".8">8:25 AM · Mon–Fri</text>
+  <text class="lb" x="322" y="132" text-anchor="end">Patna Airport</text>
+  <text x="277" y="82" text-anchor="middle" style="fill:#0E7A52;font-weight:600;font-size:11px;letter-spacing:.08em">ROUTE MATCH</text>
+</svg>`; }
+
+/* match/commute card: your route above, theirs below, merging right */
+function vizPair(){ return `<svg class="viz" viewBox="0 0 300 58" aria-hidden="true">
+  <path class="rp" d="M10 18 H 226 C 252 18 252 29 272 29"/>
+  <path class="rp mut" d="M10 42 H 226 C 252 42 252 29 272 29"/>
+  <path class="rm" d="M272 29 H 290"/>
+  <circle class="nd" cx="10" cy="18" r="4"/><circle class="nd" cx="10" cy="42" r="4"/>
+  <circle class="nd brand" cx="293" cy="29" r="4.5"/>
+</svg>`; }
+
+/* single route strip */
+function vizLine(){ return `<svg class="viz" viewBox="0 0 300 26" aria-hidden="true">
+  <path class="rm" d="M12 13 H 288"/>
+  <circle class="nd brand" cx="12" cy="13" r="4"/><circle class="nd brand" cx="288" cy="13" r="4"/>
+  <circle class="nd" cx="150" cy="13" r="3"/>
+</svg>`; }
+
+/* ---------------- demo data (FICTIONAL, demo mode only) ---------------- */
+const WD=['Mon','Tue','Wed','Thu','Fri'];
+const DEMO_USERS={
+  rahul:{id:'rahul',name:'Rahul',mode:'driver',city:'Patna',since:'Jan 2026',rating:4.9,rides:38,verified:true},
+  aman:{id:'aman',name:'Aman',mode:'driver',city:'Patna',since:'Feb 2026',rating:4.7,rides:21,verified:true},
+  priya:{id:'priya',name:'Priya',mode:'driver',city:'Patna',since:'Mar 2026',rating:4.8,rides:17,verified:false},
+  kabir:{id:'kabir',name:'Kabir',mode:'driver',city:'Patna',since:'May 2026',rating:4.6,rides:9,verified:false},
+  arjun:{id:'arjun',name:'Arjun',mode:'driver',city:'Patna',since:'Aug 2026',rating:4.5,rides:6,verified:false},
+  sneha:{id:'sneha',name:'Sneha',mode:'rider',city:'Patna',since:'Feb 2026',rating:4.9,rides:12,verified:true},
+  vivek:{id:'vivek',name:'Vivek',mode:'rider',city:'Patna',since:'Apr 2026',rating:4.6,rides:9,verified:false},
+  isha:{id:'isha',name:'Isha',mode:'rider',city:'Patna',since:'Jun 2026',rating:4.8,rides:5,verified:false},
+  meera:{id:'meera',name:'Meera',mode:'rider',city:'Patna',since:'Jul 2026',rating:4.7,rides:4,verified:true},
+  ananya:{id:'ananya',name:'Ananya',mode:'rider',city:'Patna',since:'Sep 2026',rating:4.9,rides:3,verified:true}
+};
+const DEMO_COMMUTES=[
+  {id:'dc1',user:'rahul',mode:'driver',from:'Kankarbagh',to:'Patna Airport',time:'08:10',days:WD,seats:2,freq:'Every day',note:'I go via Bailey Road. Can adjust pickup by ±10 min.'},
+  {id:'dc2',user:'aman',mode:'driver',from:'Rajendra Nagar',to:'Patna Airport',time:'08:25',days:WD,seats:1,freq:'A few days a week',note:'Airport shift.'},
+  {id:'dc3',user:'priya',mode:'driver',from:'Kankarbagh',to:'Bailey Road',time:'09:00',days:[...WD,'Sat'],seats:3,freq:'Every day',note:''},
+  {id:'dc4',user:'kabir',mode:'driver',from:'Kankarbagh',to:'Bailey Road',time:'08:50',days:WD,seats:2,freq:'A few days a week',note:'College route.'},
+  {id:'dc5',user:'arjun',mode:'driver',from:'Danapur',to:'Patna Junction',time:'09:15',days:WD,seats:2,freq:'A few days a week',note:''},
+  {id:'dc6',user:'sneha',mode:'rider',from:'Kankarbagh',to:'Patna Airport',time:'08:20',days:WD,seats:0,freq:'Every day',note:'Can meet near main road.'},
+  {id:'dc7',user:'vivek',mode:'rider',from:'Danapur',to:'Patna Junction',time:'09:00',days:[...WD,'Sat'],seats:0,freq:'A few days a week',note:''},
+  {id:'dc8',user:'isha',mode:'rider',from:'Boring Road',to:'Patna Airport',time:'07:50',days:WD,seats:0,freq:'Occasionally',note:'Mostly Mondays.'},
+  {id:'dc9',user:'meera',mode:'rider',from:'Rajendra Nagar',to:'Bailey Road',time:'08:30',days:WD,seats:0,freq:'Every day',note:''},
+  {id:'dc10',user:'ananya',mode:'rider',from:'Kankarbagh',to:'Bailey Road',time:'09:00',days:WD,seats:0,freq:'Every day',note:'Office on Bailey Road.'}
+];
+
+/* ---------------- matching engine (deterministic) ---------------- */
+function normStr(s){ return (s||'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+function tokSet(s){ return new Set(normStr(s).split(' ').filter(Boolean)); }
+function bigrams(s){ const t=normStr(s).replace(/ /g,''); const b=new Set(); for(let i=0;i<t.length-1;i++)b.add(t.slice(i,i+2)); return b; }
+function diceSim(a,b){ const A=bigrams(a),B=bigrams(b); if(!A.size||!B.size) return 0; let n=0; A.forEach(x=>{if(B.has(x))n++;}); return 2*n/(A.size+B.size); }
+function areaSim(a,b){
+  if(!a||!b) return 0;
+  const na=normStr(a), nb=normStr(b);
+  if(!na||!nb) return 0;
+  if(na===nb) return 1;
+  const A=tokSet(a),B=tokSet(b); let inter=0; A.forEach(t=>{if(B.has(t))inter++;});
+  const jac=inter/(A.size+B.size-inter);
+  const contain=(na.includes(nb)||nb.includes(na))?0.9:0;
+  return Math.max(jac, diceSim(a,b), contain);
+}
+function routeSim(ca,cb){ return Math.round(100*(0.5*areaSim(ca.from,cb.from)+0.5*areaSim(ca.to,cb.to))); }
+function timeSim(t1,t2){ const d=Math.abs(mins(t1)-mins(t2)); return Math.round(100*Math.max(0,1-d/90)); }
+function daySim(d1,d2){ const A=new Set(d1),B=new Set(d2); let i=0; A.forEach(d=>{if(B.has(d))i++;}); return A.size?Math.round(100*i/A.size):0; }
+function seatSim(me,other){
+  if(me.mode==='rider') return (other.mode==='driver'&&other.seats>0)?100:0;
+  return other.mode==='rider'?100:0;
+}
+/* TAG compatibility: 40% route / 30% time / 20% days / 10% seats — a heuristic, not a science */
+function compat(me,other){
+  const r=routeSim(me,other), t=timeSim(me.time,other.time), d=daySim(me.days,other.days), s=seatSim(me,other);
+  return {r,t,d,s,overall:Math.round(0.4*r+0.3*t+0.2*d+0.1*s)};
+}
+function overlapLabel(r){ return r>=80?'Strong route overlap':r>=60?'Good route overlap':'Partial route overlap'; }
+function findMatches(commute){
+  const out=[];
+  DEMO_COMMUTES.forEach(dc=>{
+    if(dc.mode===commute.mode) return;
+    if(isBlocked(dc.user)) return;
+    const c=compat(commute,dc);
+    if(c.overall>=40 && c.r>=50 && !S.connections.some(x=>x.demoCommute===dc.id&&x.status!=='ended')) out.push({dc,c});
+  });
+  out.sort((a,b)=>b.c.overall-a.c.overall);
+  return out;
+}
+
+/* ---------------- state ---------------- */
+const LS_KEY='tag_v2';
+function defaultState(){
+  return { screen:'landing', name:'', city:'Patna', mode:null, commute:null, exploring:false,
+    connections:[], rides:[], feedback:[], reports:[], blocked:[], saved:[], testers:[],
+    events:[], activeConn:null, recurring:null, seenLanding:false, matchFoundTracked:false,
+    adminOk:false, simError:false, devMode:true, pendingFeedback:null, matchId:null };
+}
+let S=loadState();
+function loadState(){ try{ const raw=localStorage.getItem(LS_KEY); if(raw) return Object.assign(defaultState(),JSON.parse(raw)); }catch(e){} return defaultState(); }
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(S)); }catch(e){} }
+function resetAll(){ localStorage.removeItem(LS_KEY); S=defaultState(); S.seenLanding=true; track('landing_view'); render(); toast('Demo data reset'); }
+
+/* ---------------- analytics ---------------- */
+const EVENT_NAMES=['landing_view','mode_selected','commute_started','commute_created','match_found','match_viewed','connection_requested','connection_accepted','connection_rejected','ride_scheduled','ride_completed','ride_cancelled','feedback_submitted','repeat_ride','recurring_commute_started','backup_requested','contact_shared','user_returned','report_created'];
+function track(name,props){ S.events.push({name,props:props||null,t:Date.now()}); save(); }
+function evCount(name){ return S.events.filter(e=>e.name===name).length; }
+
+/* ---------------- connection helpers ---------------- */
+function connActive(){ return S.connections.find(c=>c.status==='accepted'); }
+function connPending(){ return S.connections.find(c=>c.status==='pending'); }
+function demoUser(id){ return DEMO_USERS[id]||{name:'Member',since:'',rating:0,rides:0,city:'Patna'}; }
+function ridesFor(connId){ return S.rides.filter(r=>r.conn===connId); }
+function isBlocked(uid_){ return S.blocked.includes(uid_); }
+/* ================= LANDING — a product story ================= */
+function screenLanding(){
+  if(!S.seenLanding){ S.seenLanding=true; track('landing_view'); save(); }
+  return `
+  <div class="wrap">
+    <header style="display:flex;align-items:center;justify-content:space-between;padding:20px 0 6px">
+      <div style="display:flex;align-items:center;gap:9px">${mark(30)}<span style="font-family:var(--disp);font-size:20px;font-weight:700;letter-spacing:-.03em">TAG</span></div>
+      <button data-act="safety" class="small dim" style="display:flex;align-items:center;gap:6px">${ic('shield')} Safety</button>
+    </header>
+
+    <!-- hero -->
+    <section style="padding-top:26px">
+      <div class="display">Share the ride.<br>Split the cost.</div>
+      <p class="lead mt16" style="max-width:32ch">Find people already travelling your way — and turn spare seats into cheaper commutes.</p>
+      <div class="mt28">
+        <button class="btn btn-primary" data-act="mode" data-arg="rider">Find a ride</button>
+        <div class="mt12"></div>
+        <button class="btn btn-outline" data-act="mode" data-arg="driver">I have a seat</button>
+      </div>
+      <div class="mt20" style="padding:8px 0 4px">${vizHero()}</div>
+      <p class="small dim center">Two commutes. One shared ride.</p>
+    </section>
+
+    <!-- the problem -->
+    <section class="mt36">
+      <div class="eyebrow gray">The problem</div>
+      <div class="h1 mt8" style="font-size:26px">Your commute is already happening.</div>
+      <p class="sub mt12">Every weekday, someone drives from your area towards your destination — with an empty seat. And someone else pays for the whole trip alone, in a separate vehicle.</p>
+      <p class="sub mt8">TAG connects those two sides.</p>
+      <div class="chips mt16" style="gap:6px">
+        ${['to work','to college','to the airport','to the market','between cities'].map(t=>`<span class="pill gray" style="text-transform:none;letter-spacing:0;font-size:13px;padding:6px 12px">${t}</span>`).join('')}
+      </div>
+    </section>
+
+    <!-- how it works -->
+    <section class="mt36">
+      <div class="eyebrow gray">How TAG works</div>
+      <div class="mt12">
+        ${[['01','Tell us your route','Approximate start and destination — never your exact address.'],
+           ['02','Find someone going your way','TAG looks for commuters whose route and timing overlap with yours.'],
+           ['03','Share the ride','Connect, agree the details privately, and split the cost.']]
+          .map(([n,t,d])=>`
+          <div style="display:flex;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)">
+            <div style="font-family:var(--disp);font-weight:700;color:var(--brand);flex:0 0 26px">${n}</div>
+            <div><div class="h3">${t}</div><div class="small dim mt4">${d}</div></div>
+          </div>`).join('')}
+      </div>
+    </section>
+
+    <!-- recurring commutes -->
+    <section class="mt36">
+      <div class="eyebrow gray">Why recurring commutes</div>
+      <div class="card mt12">
+        <div class="pill live">Example</div>
+        <div class="mt12" style="font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.01em">Kankarbagh → Bailey Road</div>
+        <div class="small dim mt4">9:00 AM · Mon–Fri</div>
+        <div class="hr"></div>
+        <p class="sub" style="font-size:15px">Same route. Same time.<br>Different people. One shared commute.</p>
+      </div>
+      <p class="small dim mt12">One-off taxis solve a trip. TAG is built for the commute you repeat every week — and for the backup when your regular ride isn't available.</p>
+    </section>
+
+    <!-- trust & privacy -->
+    <section class="mt36">
+      <div class="eyebrow gray">Trust & privacy</div>
+      <div class="h2 mt8" style="font-size:21px">Built private by default.</div>
+      <ul class="tl mt12">
+        ${['Matching uses approximate areas — never your exact home address.',
+           'Your phone number is never shown publicly.',
+           'You approve every connection yourself.',
+           'Block and report are built in.',
+           'Your commute history stays yours.']
+        .map(t=>`<li><div class="dot"></div><div class="small" style="color:var(--ink-2)">${t}</div></li>`).join('')}
+      </ul>
+      <p class="small dim mt8">No platform can guarantee safety. Read the guidance before your first ride — it's there for real situations.</p>
+      <div class="mt8"><button class="btn btn-quiet" data-act="safety" style="min-height:40px">Safety guidance</button></div>
+    </section>
+
+    <!-- founding testers -->
+    <section class="mt36 card" style="background:var(--brand-tint);border-color:var(--brand-line)">
+      <div class="eyebrow">Early access</div>
+      <div class="h2 mt8" style="font-size:21px;color:var(--brand-deep)">Join the first TAG network</div>
+      <p class="small mt8" style="color:var(--brand-deep)">TAG is starting city by city with a small group of founding testers. Declare your commute and we'll hand-match the first riders and drivers in your area.</p>
+      <div class="mt16"><button class="btn btn-primary" data-act="testers">Join the first TAG network</button></div>
+      <p class="small mt8" style="color:var(--brand-deep);opacity:.75">An early testing network. Expect rough edges — and honest improvements.</p>
+    </section>
+
+    <!-- final CTA -->
+    <section class="mt36 center" style="padding-bottom:8px">
+      <div class="h1" style="font-size:26px">Your commute is already happening.</div>
+      <p class="sub mt8">Find someone going your way.</p>
+      <div class="mt20" style="padding-bottom:8px">
+        <button class="btn btn-ink" data-act="mode" data-arg="rider">Create my commute</button>
+      </div>
+    </section>
+
+    <p class="footnote">TAG is a network of commuters — not a taxi service.<br>Demo build · example people and routes are fictional.</p>
+  </div>`;
+}
+
+/* ================= MODE SELECTION ================= */
+function screenMode(){
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Get started</div></div>
+  <div class="wrap">
+    <div class="h1">What brings you to TAG?</div>
+    <div class="mt20">
+      <button class="option" data-act="start" data-arg="rider">
+        <div class="ic">${ic('person')}</div>
+        <div><div class="t">I need a ride</div><div class="d">Find someone already going my way.</div></div>
+      </button>
+      <div class="mt12"></div>
+      <button class="option" data-act="start" data-arg="driver">
+        <div class="ic">${ic('car')}</div>
+        <div><div class="t">I have a seat</div><div class="d">Find someone who needs a ride along my route.</div></div>
+      </button>
+    </div>
+    <div class="mt20 center"><button class="btn btn-quiet" data-act="start" data-arg="explore">Just exploring — see how TAG works</button></div>
+    <p class="footnote">You can switch between rider and driver anytime.</p>
+  </div>`;
+}
+
+/* ================= CREATE COMMUTE — 5 quick steps ================= */
+let F={step:1,from:'',to:'',time:'',arr:'',days:[],seats:0,freq:'',note:''};
+function startCreate(mode){ F={step:1,from:'',to:'',time:'',arr:'',days:[],seats:0,freq:'',note:''}; S.mode=(mode==='explore')?'rider':mode; S.exploring=(mode==='explore'); go('create'); track('commute_started',{mode}); track('mode_selected',{mode}); }
+function screenCreate(){
+  const isDriver=S.mode==='driver';
+  const Q=[null,
+    ['Where are you starting from?','Approximate area only — like “Kankarbagh”. TAG never shows your exact address.',`
+      <div class="field"><input id="f_from" value="${esc(F.from)}" placeholder="Starting area" autocomplete="off">
+        <div class="chips mt12">${['Kankarbagh','Rajendra Nagar','Danapur','Boring Road'].map(a=>`<button class="chip mini" data-act="fill" data-arg="from|${a}">${a}</button>`).join('')}</div>
+      </div>`],
+    ['Where are you going?','Your usual destination area.',`
+      <div class="field"><input id="f_to" value="${esc(F.to)}" placeholder="Destination area" autocomplete="off">
+        <div class="chips mt12">${['Patna Airport','Bailey Road','Patna Junction','Gandhi Maidan'].map(a=>`<button class="chip mini" data-act="fill" data-arg="to|${a}">${a}</button>`).join('')}</div>
+      </div>`],
+    ['When do you usually travel?','',`
+      <div class="field"><label>Departure around</label>
+        <div class="timeinput"><input id="f_time" type="time" value="${F.time}"></div></div>
+      <div class="field"><label>Arrival (optional)</label>
+        <div class="timeinput"><input id="f_arr" type="time" value="${F.arr}"></div></div>`],
+    ['Which days?','Select every day you normally make this trip.',`
+      <div class="field"><div class="chips" id="daywrap">
+        ${DAY_ORDER.map(d=>`<button class="chip ${F.days.includes(d)?'on':''}" data-act="day" data-arg="${d}">${d}</button>`).join('')}
+      </div></div>`],
+    isDriver?['How many spare seats?','Only count seats you\'re genuinely happy to share.',`
+      <div class="field"><div class="chips">
+        ${[1,2,3,4].map(n=>`<button class="chip ${F.seats===n?'on':''}" data-act="seats" data-arg="${n}" style="min-width:64px">${n===4?'4+':n}</button>`).join('')}
+      </div></div>`]
+      :['How often do you need this ride?','',`
+      <div class="field" style="display:grid;gap:10px">
+        ${['Every day','A few days a week','Occasionally'].map(f=>`<button class="choice ${F.freq===f?'on':''}" data-act="freq" data-arg="${f}">${f}</button>`).join('')}
+      </div>`]
+  ];
+  const [title,hint,body]=Q[F.step];
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Your commute</div><span class="pill ${S.exploring?'gray':'live'}">${S.exploring?'Exploring':(isDriver?'Driver':'Rider')}</span></div>
+  <div class="wrap">
+    <div class="steps">${[1,2,3,4,5].map(n=>`<i class="${n<=F.step?'on':''}"></i>`).join('')}</div>
+    <div class="h1 mt20" style="font-size:27px">${title}</div>
+    ${hint?`<p class="sub mt8">${hint}</p>`:''}
+    <div class="mt20">${body}</div>
+    <div class="mt28" style="padding-bottom:28px">
+      <button class="btn btn-primary" data-act="next">${F.step===5?'Find my matches':'Continue'}</button>
+      ${F.step>1?'<button class="btn btn-quiet" data-act="prev">Back</button>':''}
+    </div>
+  </div>`;
+}
+function createNext(){
+  if(F.step===1){ F.from=($('#f_from')||{}).value!=null?$('#f_from').value.trim():F.from; if(!F.from){toast('Add your starting area');return;} }
+  if(F.step===2){ F.to=($('#f_to')||{}).value!=null?$('#f_to').value.trim():F.to; if(!F.to){toast('Add your destination');return;} }
+  if(F.step===3){ const t=$('#f_time'); if(t&&!t.value){toast('Pick a departure time');return;} if(t)F.time=t.value; const a=$('#f_arr'); if(a)F.arr=a.value; }
+  if(F.step===4){ if(!F.days.length){toast('Select at least one day');return;} }
+  if(F.step===5){
+    if(S.mode==='driver'&&!F.seats){toast('Select how many seats you can share');return;}
+    if(S.mode==='rider'&&!F.freq){toast('Select how often you need this ride');return;}
+    submitCommute(); return;
+  }
+  F.step++; render();
+}
+function submitCommute(){
+  if(S.simError){ openSheet(`
+    <div class="errorbox">
+      <div class="t">Couldn't create your commute</div>
+      <div class="d">Something went wrong. Your entries are still saved on this step.</div>
+      <div class="mt16"><button class="btn btn-primary" data-act="retryCreate">Try again</button></div>
+    </div>`); return;
+  }
+  S.commute={ id:uid(), mode:S.mode, from:F.from, to:F.to, time:F.time, arr:F.arr, days:F.days.slice(),
+    seats:S.mode==='driver'?F.seats:0, freq:S.mode==='driver'?'':F.freq, note:F.note, status:'active', createdTs:Date.now() };
+  S.connections=[]; S.rides=[]; S.feedback=[]; S.activeConn=null; S.recurring=null; S.matchFoundTracked=false; S.saved=[];
+  track('commute_created',{from:S.commute.from,to:S.commute.to,mode:S.commute.mode});
+  save(); go('confirm');
+}
+function screenConfirm(){
+  const c=S.commute, matches=findMatches(c);
+  return `
+  <div class="wrap" style="padding-top:52px">
+    <div class="center">
+      <div class="empty-art">${ic('check')}</div>
+      <div class="h1 mt20">You're on TAG.</div>
+      <p class="sub mt8">We're looking for people whose commute overlaps with yours.</p>
+    </div>
+    <div class="card mt28">
+      ${vizLine()}
+      <div class="mt12" style="font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.01em">${esc(c.from)} → ${esc(c.to)}</div>
+      <div class="small dim mt4">${fmtTime(c.time)}${c.arr?' – '+fmtTime(c.arr):''} · ${fmtDays(c.days)}</div>
+      <div class="hr"></div>
+      <div class="srow"><span class="small dim">Mode</span><span class="small" style="font-weight:600">${c.mode==='driver'?`Driver · ${c.seats===4?'4+':c.seats} seat${c.seats>1?'s':''} offered`:`Rider · ${esc(c.freq)}`}</span></div>
+    </div>
+    ${matches.length?`<div class="notice mt12">${ic('info')}<div><b>${matches.length} ${matches.length===1?'person':'people'}</b> in this demo dataset already travel a compatible route.</div></div>`:
+    `<div class="notice mt12">${ic('info')}<div>TAG is still growing in this area — we'll show you the moment someone compatible joins.</div></div>`}
+    <div class="mt20" style="padding-bottom:28px">
+      <button class="btn btn-primary" data-act="matches2">See my matches</button>
+    </div>
+  </div>`;
+}
+/* ================= MATCH DISCOVERY ================= */
+let matchesLoading=false;
+function screenMatches(){
+  const c=S.commute; if(!c) return screenNoCommute();
+  if(matchesLoading) return matchesSkeleton();
+  const list=findMatches(c);
+  if(!S.matchFoundTracked){ S.matchFoundTracked=true; track('match_found',{count:list.length}); save(); }
+  if(!list.length) return screenNoMatches();
+  return `
+  <div class="screen-head"><div class="title">Matches</div><span class="pill demo">Demo data</span></div>
+  <div class="wrap">
+    <p class="sub">People already travelling a compatible route. The match is about the <b>commute</b> — who drives, who rides, you decide together.</p>
+    <div class="mt16" style="display:grid;gap:12px;padding-bottom:24px">
+      ${list.map(({dc,c:m})=>{ const u=demoUser(dc.user); return `
+      <div class="match">
+        <div class="head">
+          <div><span class="eyebrow">Route match</span></div>
+          <div class="score">${m.overall}</div>
+        </div>
+        <div class="route">${esc(c.from)} → ${esc(c.to)}</div>
+        <div class="small dim mt4">with ${esc(u.name)} · ${dc.mode==='driver'?'driver':(esc(dc.freq)||'rider')}${dc.mode==='driver'?` · ${dc.seats===4?'4+':dc.seats} seat${dc.seats>1?'s':''}`:''}</div>
+        <div class="mt12">${vizPair()}</div>
+        <div class="cmp mt8">
+          <div class="col"><div class="who">Your commute</div><div class="what">${fmtTime(c.time)} · ${fmtDays(c.days)}</div></div>
+          <div class="col"><div class="who">Their commute</div><div class="what">${fmtTime(dc.time)} · ${fmtDays(dc.days)}</div></div>
+        </div>
+        <div class="mt12" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div class="small dim">${overlapLabel(m.r)} · ${m.r}% route</div>
+          <button class="btn btn-sm btn-quiet" data-act="view" data-arg="${dc.id}" style="width:auto;padding:0 10px">Details</button>
+        </div>
+        <div class="hr" style="margin:12px 0"></div>
+        <button class="btn btn-primary btn-sm" data-act="connect" data-arg="${dc.id}">Request to connect</button>
+      </div>`;}).join('')}
+    </div>
+    <p class="footnote">Compatibility is a heuristic — route, timing, days and seats. Example users are fictional.</p>
+  </div>`;
+}
+function matchesSkeleton(){
+  return `
+  <div class="screen-head"><div class="title">Matches</div></div>
+  <div class="wrap">
+    <div class="skel" style="height:14px;width:55%"></div>
+    <div class="mt16" style="display:grid;gap:12px">${[0,1,2].map(()=>'<div class="skel" style="height:230px"></div>').join('')}</div>
+    <p class="footnote">Looking for people whose commute overlaps with yours…</p>
+  </div>`;
+}
+function screenNoMatches(){
+  return `
+  <div class="screen-head"><div class="title">Matches</div></div>
+  <div class="wrap">
+    <div class="center" style="padding-top:26px">
+      <div class="empty-art">${ic('route')}</div>
+      <div class="h2 mt20">No matches yet</div>
+      <p class="sub mt8">Your route is saved.<br>We'll show compatible commuters when they appear.</p>
+    </div>
+    <div class="card mt24">
+      <div class="h3">Know someone who travels this route?</div>
+      <p class="small dim mt8">TAG works when there are enough people on a route. Invite someone who commutes your way — or join the founding testers network.</p>
+      <div class="mt16"><button class="btn btn-primary" data-act="share">${ic('share')} Share TAG</button></div>
+      <div class="mt12"></div><button class="btn btn-soft" data-act="testers">Join the first TAG network</button>
+    </div>
+    <div class="mt16" style="padding-bottom:24px"><button class="btn btn-quiet" data-act="go" data-arg="commute">Back to my commute</button></div>
+  </div>`;
+}
+
+/* ================= MATCH DETAILS ================= */
+function screenMatch(dcId){
+  const dc=DEMO_COMMUTES.find(d=>d.id===dcId); if(!dc) return screenMatches();
+  track('match_viewed',{user:dc.user});
+  const u=demoUser(dc.user), c=S.commute, m=compat(c,dc);
+  const saved=S.saved.includes(dc.id);
+  const existing=S.connections.find(x=>x.demoCommute===dc.id);
+  return `
+  <div class="screen-head"><button class="back" data-act="matches">${ic('left')}</button><div class="title">Route match</div></div>
+  <div class="wrap">
+    <div style="display:flex;gap:14px;align-items:center">
+      <div class="avatar lg">${esc(u.name[0])}</div>
+      <div>
+        <div class="h2">${esc(u.name)}${u.verified?' <span class="pill live" style="vertical-align:2px">Verified</span>':''}</div>
+        <div class="small dim">${dc.mode==='driver'?'Driver':'Rider'} · ★ ${u.rating.toFixed(1)} · ${u.rides} TAG rides · ${esc(u.city)}</div>
+      </div>
+    </div>
+
+    <div class="card mt20">
+      <div class="eyebrow gray">The commute</div>
+      <div class="mt12">${vizPair()}</div>
+      <div class="mt8" style="font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.01em">${esc(dc.from)} → ${esc(dc.to)}</div>
+      <div class="small dim mt4">${fmtTime(dc.time)} · ${fmtDays(dc.days)}${dc.mode==='driver'?` · ${dc.seats===4?'4+':dc.seats} seat${dc.seats>1?'s':''}`:''}</div>
+      ${dc.note?`<div class="small dim mt8">“${esc(dc.note)}”</div>`:''}
+      <div class="cmp mt12">
+        <div class="col"><div class="who">Your commute</div><div class="what">${fmtTime(c.time)} · ${fmtDays(c.days)}</div></div>
+        <div class="col"><div class="who">Their commute</div><div class="what">${fmtTime(dc.time)} · ${fmtDays(dc.days)}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div class="eyebrow gray">TAG compatibility</div><div class="score">${m.overall}</div>
+      </div>
+      <div class="mt12">
+        ${[['Route overlap',m.r],['Time overlap',m.t],['Day overlap',m.d],['Seats & frequency',m.s]].map(([l,v])=>`
+        <div class="mrow"><div class="ml">${l}</div><div class="meter"><i style="width:${v}%"></i></div><div class="mv">${v}%</div></div>`).join('')}
+      </div>
+      <p class="small dim">Today's matching heuristic — 40% route, 30% timing, 20% days, 10% seats. Not a scientific score.</p>
+    </div>
+
+    <div class="notice">${ic('info')}<div><b>You decide together:</b> pickup point, drop-off, timing and cost contribution. TAG never sets the price — it just connects people going the same way.</div></div>
+
+    <div class="mt20" style="padding-bottom:28px">
+      ${existing
+        ? (existing.status==='accepted'
+            ? `<div class="notice">${ic('check')}<div>You're already connected with ${esc(u.name)}.</div></div>
+               <div class="mt12"></div><button class="btn btn-primary" data-act="go" data-arg="commute">Go to my commute</button>`
+            : `<div class="notice">${ic('clock')}<div>Request sent — waiting for ${esc(u.name)}.</div></div>
+               <div class="mt12"></div><button class="btn btn-soft" data-act="go" data-arg="activity">Check activity</button>`)
+        : `<button class="btn btn-primary" data-act="connect" data-arg="${dc.id}">Request to connect</button>
+           <div class="mt12 btn-row">
+             <button class="btn btn-soft btn-sm" style="flex:1" data-act="viewRoute" data-arg="${dc.id}">${ic('pin')} View route</button>
+             <button class="btn btn-soft btn-sm" style="flex:1" data-act="saveMatch" data-arg="${dc.id}">${saved?'Saved':'Save match'}</button>
+           </div>
+           <div class="mt12 btn-row">
+             <button class="btn btn-quiet btn-sm" style="flex:1" data-act="report">Report</button>
+             <button class="btn btn-quiet btn-sm" style="flex:1;color:var(--err)" data-act="blockUser" data-arg="${dc.user}">Block</button>
+           </div>`}
+    </div>
+  </div>`;
+}
+function viewRouteSheet(dcId){
+  const dc=DEMO_COMMUTES.find(d=>d.id===dcId);
+  openSheet(`
+    <div class="eyebrow gray">Approximate route</div>
+    <div class="h2 mt8" style="font-size:19px">${esc(dc.from)} → ${esc(dc.to)}</div>
+    <div class="mt16">${vizPair()}</div>
+    <div class="srow"><span class="small dim">Departure</span><span class="small" style="font-weight:600">around ${fmtTime(dc.time)}</span></div>
+    <div class="srow"><span class="small dim">Days</span><span class="small" style="font-weight:600">${fmtDays(dc.days)}</span></div>
+    <p class="small dim mt8">TAG shows areas, not exact addresses. Precise pickup and drop-off are agreed privately after you connect.</p>
+    <div class="mt16"><button class="btn btn-soft" data-act="closeSheet">Close</button></div>`);
+}
+
+/* ================= CONNECTION ================= */
+function openConnectSheet(dcId){
+  const dc=DEMO_COMMUTES.find(d=>d.id===dcId), u=demoUser(dc.user);
+  openSheet(`
+    <div class="center">
+      <div class="avatar lg" style="margin:0 auto">${esc(u.name[0])}</div>
+      <div class="h2 mt12">Send connection request?</div>
+      <p class="sub mt8">If ${esc(u.name)} accepts, you can coordinate this commute together. Contact details stay hidden until you both choose to share them.</p>
+    </div>
+    <div class="mt20">
+      <button class="btn btn-primary" data-act="sendReq" data-arg="${dc.id}">Send request</button>
+      <div class="mt12"></div><button class="btn btn-quiet" data-act="closeSheet">Not now</button>
+    </div>`);
+}
+function sendRequest(dcId){
+  const dc=DEMO_COMMUTES.find(d=>d.id===dcId), u=demoUser(dc.user);
+  if(isBlocked(dc.user)){ toast('You blocked this user'); return; }
+  S.connections.push({id:uid(),demoCommute:dc.id,user:dc.user,status:'pending',contactShared:false,createdAt:Date.now()});
+  track('connection_requested',{user:dc.user}); save(); closeSheet();
+  openSheet(`
+    <div class="center">
+      <div class="empty-art">${ic('check')}</div>
+      <div class="h2 mt16">Request sent.</div>
+      <p class="sub mt8">Waiting for ${esc(u.name)} to respond.</p>
+      <div class="notice warn mt12" style="text-align:left">${ic('info')}<div><b>Demo:</b> there's no live user on the other side. Use the button below (or in Activity) to simulate acceptance and continue the flow.</div></div>
+    </div>
+    <div class="mt20">
+      <button class="btn btn-primary" data-act="demoAccept" data-arg="${dc.id}">(Demo) ${esc(u.name)} accepts</button>
+      <div class="mt12"></div><button class="btn btn-soft" data-act="closeSheet">Go to activity</button>
+    </div>`);
+}
+function acceptConn(dcId){
+  const conn=S.connections.find(x=>x.demoCommute===dcId&&x.status==='pending'); if(!conn) return;
+  conn.status='accepted'; conn.acceptedAt=Date.now(); S.activeConn=conn.id;
+  track('connection_accepted',{user:conn.user}); save(); closeSheet(); go('connected');
+}
+function screenConnected(){
+  const conn=connActive(); if(!conn) return screenCommute();
+  const u=demoUser(conn.user), dc=DEMO_COMMUTES.find(d=>d.id===conn.demoCommute);
+  const rides=ridesFor(conn.id).length;
+  return `
+  <div class="wrap" style="padding-top:52px">
+    <div class="center">
+      <div class="empty-art">${ic('check')}</div>
+      <div class="h1 mt20">You're connected.</div>
+      <p class="sub mt8">Agree the pickup, drop-off and cost contribution with each other — privately.</p>
+    </div>
+
+    <div class="card mt28">
+      <div style="display:flex;gap:14px;align-items:center">
+        <div class="avatar">${esc(u.name[0])}</div>
+        <div><div class="h3">${esc(u.name)}</div><div class="small dim">${dc.mode==='driver'?'Driver':'Rider'} · ${esc(dc.from)} → ${esc(dc.to)}</div></div>
+      </div>
+      <div class="hr"></div>
+      ${conn.contactShared
+        ? `<div class="srow"><span class="small dim">Contact</span><span class="small" style="font-weight:600">+91 ••••• 41290 <span class="pill demo" style="margin-left:4px">demo</span></span></div>
+           <p class="small dim mt4">Shared with both of you only. In production this becomes in-app chat and masked calling — your number is never listed.</p>`
+        : `<div class="srow"><span class="small dim">Contact</span><span class="small" style="font-weight:600">Hidden</span></div>
+           <div class="mt12"><button class="btn btn-soft btn-sm" data-act="shareContact">${ic('share')} Share contact details with ${esc(u.name)}</button></div>`}
+    </div>
+
+    <div class="card">
+      <div class="eyebrow gray">Make this your regular commute</div>
+      ${S.recurring?`
+        <div class="srow"><span class="small dim">Recurring commute</span><span class="small" style="font-weight:600;color:var(--brand-deep)">Active since ${niceDate(S.recurring.since)}</span></div>
+        <div class="srow"><span class="small dim">Rides completed</span><span class="small" style="font-weight:600">${rides}</span></div>
+        <div class="srow"><span class="small dim">Next ride</span><span class="small" style="font-weight:600">${nextRideDay(S.commute.days)} · ${fmtTime(S.commute.time)}</span></div>`
+      :`<p class="small dim mt8">Keep TAG as your commute backup — if ${esc(u.name)} isn't available one day, we'll help you find someone else going your way.</p>`}
+      <div class="mt16 btn-row">
+        <button class="btn btn-primary btn-sm" style="flex:1.4" data-act="rideAgain">${ic('backup')} Ride again</button>
+        <button class="btn btn-soft btn-sm" style="flex:1" data-act="matches2">More matches</button>
+      </div>
+      <div class="mt12 btn-row">
+        <button class="btn btn-quiet btn-sm" style="flex:1" data-act="report">Report problem</button>
+        <button class="btn btn-quiet btn-sm" style="flex:1;color:var(--err)" data-act="endConn">End commute</button>
+      </div>
+    </div>
+    <div style="height:28px"></div>
+  </div>`;
+}
+
+/* ================= MY COMMUTE ================= */
+function screenNoCommute(){
+  return `
+  <div class="wrap" style="padding-top:52px">
+    <div class="center">
+      <div class="empty-art">${ic('route')}</div>
+      <div class="h1 mt20">No commute yet</div>
+      <p class="sub mt8">Tell TAG where you regularly travel, and we'll look for people going the same way.</p>
+    </div>
+    <div class="mt28" style="padding-bottom:28px"><button class="btn btn-primary" data-act="go" data-arg="mode">Create my commute</button></div>
+  </div>`;
+}
+function screenCommute(){
+  const c=S.commute; if(!c) return screenNoCommute();
+  const conn=connActive(), pend=connPending();
+  const list=findMatches(c).filter(x=>!conn||x.dc.id!==conn.demoCommute);
+  const rides=conn?ridesFor(conn.id).length:0;
+  const paused=c.status==='paused';
+  return `
+  <div class="screen-head"><div class="title">My commute</div>${paused?'<span class="pill gray">Paused</span>':'<span class="pill live">Active</span>'}</div>
+  <div class="wrap">
+    <div class="card">
+      ${vizLine()}
+      <div class="mt12" style="font-family:var(--disp);font-size:19px;font-weight:700;letter-spacing:-.01em">${esc(c.from)} → ${esc(c.to)}</div>
+      <div class="small dim mt4">${fmtTime(c.time)}${c.arr?' – '+fmtTime(c.arr):''} · ${fmtDays(c.days)}</div>
+      <div class="hr"></div>
+      <div class="srow"><span class="small dim">Mode</span><span class="small" style="font-weight:600">${c.mode==='driver'?`Driver · ${c.seats===4?'4+':c.seats} seat${c.seats>1?'s':''}`:`Rider · ${esc(c.freq)}`}</span></div>
+      ${S.recurring?`<div class="srow"><span class="small dim">Recurring</span><span class="small" style="font-weight:600;color:var(--brand-deep)">Active since ${niceDate(S.recurring.since)} · ${rides} ride${rides===1?'':'s'}</span></div>`:''}
+      <div class="srow"><span class="small dim">Next ride</span><span class="small" style="font-weight:600">${paused?'Paused':nextRideDay(c.days)+' · '+fmtTime(c.time)}</span></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow gray">Your regular match</div>
+      ${conn?`
+        <div class="mt8" style="display:flex;gap:14px;align-items:center">
+          <div class="avatar">${esc(demoUser(conn.user).name[0])}</div>
+          <div style="flex:1"><div class="h3">${esc(demoUser(conn.user).name)}</div>
+            <div class="small dim">${rides} ride${rides===1?'':'s'} completed${conn.contactShared?' · connected':''}</div></div>
+          <button class="btn btn-soft btn-sm" style="width:auto;padding:0 14px" data-act="go" data-arg="connected">Open</button>
+        </div>`
+      : pend?`
+        <div class="mt8" style="display:flex;gap:14px;align-items:center">
+          <div class="avatar">${esc(demoUser(pend.user).name[0])}</div>
+          <div style="flex:1"><div class="h3">${esc(demoUser(pend.user).name)}</div><div class="small dim">Waiting for response</div></div>
+          <button class="btn btn-soft btn-sm" style="width:auto;padding:0 12px" data-act="demoAccept" data-arg="${pend.demoCommute}">(Demo) accept</button>
+        </div>`
+      :`
+        <div class="mt8" style="display:flex;gap:14px;align-items:center">
+          <div class="avatar" style="background:var(--wash);color:var(--muted)">?</div>
+          <div style="flex:1"><div class="h3">No regular match yet</div><div class="small dim">${list.length} compatible commute${list.length===1?'':'s'} in the demo network</div></div>
+        </div>`}
+    </div>
+
+    <div class="card">
+      <div class="eyebrow gray">Backup</div>
+      <div class="mt8" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div><div class="h3">${list.length} possible backup${list.length===1?'':'s'}</div>
+        <div class="small dim mt4">People going a similar way, if your regular ride isn't available.</div></div>
+        <button class="btn btn-soft btn-sm" style="width:auto;padding:0 14px" data-act="go" data-arg="backups">Find</button>
+      </div>
+    </div>
+
+    <div class="mt16" style="display:grid;gap:10px;padding-bottom:24px">
+      ${conn?'<button class="btn btn-primary" data-act="rideAgain">Ride again</button>':''}
+      ${list.length?'<button class="btn btn-soft" data-act="matches2">View matches</button>':''}
+      <button class="btn btn-soft" data-act="editCommute">Change schedule</button>
+      <button class="btn btn-quiet" data-act="pauseCommute">${paused?'Resume commute':'Pause commute'}</button>
+    </div>
+  </div>`;
+}
+
+/* ================= BACKUPS ================= */
+function screenBackups(){
+  const c=S.commute; const conn=connActive();
+  const list=findMatches(c).filter(x=>!conn||x.dc.id!==conn.demoCommute);
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Backup options</div></div>
+  <div class="wrap">
+    ${conn?`<div class="notice">${ic('backup')}<div>Your regular ride isn't available today? TAG can connect you with someone else travelling your way.</div></div>`
+    :`<p class="sub">A recurring commute is unreliable with only one person. These are others who travel a compatible route.</p>`}
+    <div class="mt16" style="display:grid;gap:12px;padding-bottom:24px">
+      ${list.length?list.map(({dc,c:m})=>{const u=demoUser(dc.user);return `
+        <div class="card">
+          <div style="display:flex;gap:14px;align-items:center">
+            <div class="avatar">${esc(u.name[0])}</div>
+            <div style="flex:1;min-width:0"><div class="h3">${esc(u.name)}</div>
+              <div class="small dim">${esc(dc.from)} → ${esc(dc.to)} · ${fmtTime(dc.time)}</div></div>
+            <div class="score" style="font-size:20px">${m.r}%</div>
+          </div>
+          <div class="hr" style="margin:12px 0"></div>
+          <button class="btn btn-soft btn-sm" data-act="reqBackup" data-arg="${dc.id}">Request backup</button>
+        </div>`;}).join('')
+      :`<div class="card center"><div class="h3">No backup options yet</div>
+        <p class="small dim mt8">TAG is still growing in this area.</p>
+        <div class="mt12"><button class="btn btn-soft btn-sm" data-act="share">${ic('share')} Invite someone</button></div></div>`}
+    </div>
+  </div>`;
+}
+/* ================= ACTIVITY ================= */
+function screenActivity(){
+  const items=[];
+  const add=(t,what,sub)=>items.push({t,what,sub});
+  if(S.commute) add(S.commute.createdTs||Date.now(),'Commute created',S.commute.from+' → '+S.commute.to);
+  S.connections.forEach(c=>{
+    const u=demoUser(c.user);
+    if(c.acceptedAt) add(c.acceptedAt,'Connection accepted','You and '+u.name+' can coordinate now');
+    else if(c.createdAt) add(c.createdAt,'Connection requested','Waiting for '+u.name);
+    if(c.status==='ended') add(c.endedAt||Date.now(),'Commute ended','With '+u.name);
+  });
+  ridesFor(connActive()?connActive().id:'__').forEach(r=>add(r.t,'Ride completed','With '+demoUser((S.connections.find(c=>c.id===r.conn)||{}).user).name));
+  if(S.recurring) add(S.recurring.since,'Recurring commute created','This is now a regular commute');
+  S.events.filter(e=>e.name==='match_found').forEach(e=>add(e.t,'New matches','Compatible commuters found for your route'));
+  S.events.filter(e=>e.name==='backup_requested').forEach(e=>add(e.t,'Backup requested'));
+  S.events.filter(e=>e.name==='feedback_submitted').forEach(e=>add(e.t,'Feedback recorded'));
+  if(S.pendingFeedback) add(Date.now(),'Feedback requested','How did your ride go?');
+  items.sort((a,b)=>b.t-a.t);
+  const pend=connPending();
+  return `
+  <div class="screen-head"><div class="title">Activity</div></div>
+  <div class="wrap">
+    ${pend?`
+    <div class="card">
+      <div class="eyebrow gray">Waiting for response</div>
+      <div class="mt8" style="display:flex;gap:14px;align-items:center">
+        <div class="avatar">${esc(demoUser(pend.user).name[0])}</div>
+        <div style="flex:1"><div class="h3">${esc(demoUser(pend.user).name)}</div><div class="small dim">Connection request sent</div></div>
+        <button class="btn btn-soft btn-sm" style="width:auto;padding:0 12px" data-act="demoAccept" data-arg="${pend.demoCommute}">(Demo) accept</button>
+      </div>
+    </div>`:''}
+    ${items.length?`<ul class="tl mt16">${items.map(i=>`
+      <li><div class="dot ${/ended/.test(i.what)?'gray':''}"></div><div>
+        <div class="when">${niceDate(i.t)}</div><div class="what">${esc(i.what)}</div>
+        ${i.sub?`<div class="small dim">${esc(i.sub)}</div>`:''}</div></li>`).join('')}</ul>`
+    :`<div class="card center mt16"><div class="h3">Nothing yet</div><p class="small dim mt8">Connections, rides and matches will appear here.</p></div>`}
+    <div style="height:24px"></div>
+  </div>`;
+}
+
+/* ================= POST-RIDE FEEDBACK + RECURRING ================= */
+let FB={step:1,rating:'',again:'',tag:''};
+function screenFeedback(){
+  const q1=['👍 Great','😐 Okay','👎 Problem'];
+  const q2=['Yes','No','Scheduled another ride'];
+  const q3=['Yes','No','We exchanged contacts and continued privately'];
+  let body='';
+  if(FB.step===1) body=`<div class="center"><div class="h1">How did it go?</div></div>
+    <div class="mt24" style="display:grid;gap:10px">${q1.map(x=>`<button class="choice ${FB.rating===x?'on':''}" data-act="fb" data-arg="rating|${x}">${x}</button>`).join('')}</div>
+    <div class="mt24"><button class="btn btn-primary" data-act="fbNext">Continue</button></div>`;
+  else if(FB.step===2) body=`<div class="center"><div class="h1" style="font-size:26px">Did you ride together again?</div></div>
+    <div class="mt24" style="display:grid;gap:10px">${q2.map(x=>`<button class="choice ${FB.again===x?'on':''}" data-act="fb" data-arg="again|${x}">${x}</button>`).join('')}</div>
+    <div class="mt24"><button class="btn btn-primary" data-act="fbNext">Continue</button></div>`;
+  else body=`<div class="center"><div class="h1" style="font-size:25px">Are you still coordinating through TAG?</div></div>
+    <div class="mt24" style="display:grid;gap:10px">${q3.map(x=>`<button class="choice ${FB.tag===x?'on':''}" data-act="fb" data-arg="tag|${x}">${x}</button>`).join('')}</div>
+    <div class="notice mt16">${ic('info')}<div>Honest answers help TAG learn whether it stays useful after two people meet. No judgement — this is research, not a scorecard.</div></div>
+    <div class="mt16"><button class="btn btn-primary" data-act="fbDone">Done</button></div>`;
+  return `<div class="wrap" style="padding-top:56px">${body}<div style="padding-bottom:28px"></div></div>`;
+}
+function fbDone(){
+  S.feedback.push({id:uid(),rating:FB.rating,repeated:FB.again,continued:FB.tag,t:Date.now()});
+  track('feedback_submitted',{rating:FB.rating,repeated:FB.again,continued:FB.tag});
+  if(FB.tag==='We exchanged contacts and continued privately') track('contact_shared');
+  S.pendingFeedback=null; FB={step:1,rating:'',again:'',tag:''}; save();
+  if(!S.recurring){ go('recurringAsk'); } else go('commute');
+}
+function screenRecurringAsk(){
+  const c=S.commute;
+  return `
+  <div class="wrap" style="padding-top:52px">
+    <div class="center">
+      <div class="empty-art">${ic('backup')}</div>
+      <div class="h1 mt20">Ride again?</div>
+      <p class="sub mt8">Make this your regular commute — TAG keeps your schedule, history and backups in one place.</p>
+    </div>
+    <div class="card mt28">
+      <div class="eyebrow gray">Recurring commute</div>
+      <div class="mt8" style="font-family:var(--disp);font-size:19px;font-weight:700">${esc(c.from)} → ${esc(c.to)}</div>
+      <div class="small dim mt4">${fmtTime(c.time)} · ${fmtDays(c.days)}</div>
+    </div>
+    <div class="mt20" style="display:grid;gap:10px;padding-bottom:28px">
+      <button class="btn btn-primary" data-act="makeRecurring">Yes, make this recurring</button>
+      <button class="btn btn-quiet" data-act="go" data-arg="commute">No, not yet</button>
+    </div>
+  </div>`;
+}
+
+/* ================= PROFILE ================= */
+function screenProfile(){
+  const mode=S.mode==='driver'?'Driver':S.mode==='rider'?'Rider':'Exploring';
+  const rides=S.rides.length;
+  const great=S.feedback.filter(f=>/Great/.test(f.rating||'')).length;
+  return `
+  <div class="screen-head"><div class="title">Profile</div></div>
+  <div class="wrap">
+    <div class="card">
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="avatar lg">${esc((S.name||'You')[0].toUpperCase())}</div>
+        <div style="flex:1;min-width:0">
+          <input id="p_name" value="${esc(S.name)}" placeholder="Your name" style="border:none;padding:2px 0;font-family:var(--disp);font-weight:700;font-size:20px;background:transparent">
+          <div class="small dim">${esc(S.city||'Patna')} · joined ${niceDate(Date.now())}</div>
+          <div class="mt8"><span class="pill live">${mode}</span>${rides?` <span class="pill gray">${rides} TAG ride${rides>1?'s':''}</span>`:''}</div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="srow"><span class="small dim">Commute history</span><span class="small" style="font-weight:600">${S.recurring?'Recurring · '+rides+' ride'+(rides===1?'':'s'):'No recurring commute yet'}</span></div>
+      <div class="srow"><span class="small dim">Feedback</span><span class="small" style="font-weight:600">${S.feedback.length?great+' of '+S.feedback.length+' rated “Great”':'No ratings yet'}</span></div>
+      <div class="srow"><span class="small dim">Blocked users</span><span class="small" style="font-weight:600">${S.blocked.length}</span></div>
+      <div class="srow"><span class="small dim">Reports filed</span><span class="small" style="font-weight:600">${S.reports.length}</span></div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow gray">Trust & safety</div>
+      <div class="mt4"><button class="btn btn-soft btn-sm" data-act="safety" style="width:auto;padding:0 16px;margin-top:10px">Safety center</button></div>
+    </div>
+
+    ${S.devMode?`
+    <div class="card">
+      <div class="eyebrow gray">Demo controls</div>
+      <div class="srow mt8"><div><div class="h3" style="font-size:15px">Simulate network errors</div><div class="small dim">Test loading, error and retry states</div></div>
+        <div class="switch ${S.simError?'on':''}" data-act="toggleErr"></div></div>
+      <div class="srow"><div><div class="h3" style="font-size:15px">Founder dashboard</div><div class="small dim">Validation metrics (protected)</div></div>
+        <button class="btn btn-soft btn-sm" style="width:auto;padding:0 14px" data-act="admin">Open</button></div>
+      <div class="srow"><div><div class="h3" style="font-size:15px">Reset demo data</div><div class="small dim">Clears everything on this device</div></div>
+        <button class="btn btn-soft btn-sm" style="width:auto;padding:0 14px" data-act="reset">Reset</button></div>
+    </div>`:''}
+
+    <p class="footnote">TAG — Share the ride. Split the cost.<br>Validation MVP v0.2 · example users are fictional.</p>
+  </div>`;
+}
+
+/* ================= SAFETY ================= */
+function screenSafety(){
+  const conn=connActive();
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Safety</div></div>
+  <div class="wrap">
+    <div class="notice">${ic('shield')}<div>Safety here depends on real habits, not promises. No platform can guarantee it — take these steps every time.</div></div>
+    <div class="card mt12">
+      <div class="eyebrow gray">Before every ride</div>
+      <ul class="tl mt8">
+        ${['Prefer public, well-lit meeting points.',
+           'Confirm vehicle details before entering.',
+           'Confirm the person matches their TAG profile.',
+           'Tell someone you trust about your ride.',
+           'Cancel if something feels wrong — no explanation needed.']
+        .map(t=>`<li><div class="dot"></div><div class="small" style="color:var(--ink-2)">${t}</div></li>`).join('')}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="eyebrow gray">Emergency guidance</div>
+      <p class="small dim mt8">If you feel unsafe during a ride, move to a public place first. In India, the national emergency number is <b>112</b>. Use the controls below to report the situation to TAG afterwards — reports are reviewed by a human.</p>
+    </div>
+    <div class="card">
+      <div class="eyebrow gray">Controls</div>
+      <div class="mt12" style="display:grid;gap:10px">
+        <button class="btn btn-soft btn-sm" data-act="report">${ic('flag')} Report a user</button>
+        <button class="btn btn-danger btn-sm" data-act="blockAny">${ic('shield')} Block a user</button>
+        ${conn?`<button class="btn btn-quiet btn-sm" data-act="endConn">Cancel my current connection</button>`:''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="eyebrow gray">Privacy</div>
+      <p class="small dim mt8">Matching uses approximate areas only. Your exact home address is never shown, and your phone number is never listed. Contact details move between two people only when both choose to share them.</p>
+    </div>
+    <div style="height:24px"></div>
+  </div>`;
+}
+
+/* ================= FOUNDING TAG TESTERS ================= */
+let T={mode:'rider',days:[]};
+function screenTesters(){
+  if(S.testerDone) return `
+  <div class="wrap" style="padding-top:52px">
+    <div class="center">
+      <div class="empty-art">${ic('check')}</div>
+      <div class="h1 mt20">You're a Founding TAG Tester.</div>
+      <p class="sub mt8">Your commute is on the list. When someone compatible joins your route, we'll reach out — on WhatsApp, if you agreed to it.</p>
+    </div>
+    <div class="notice mt24">${ic('info')}<div>This is an early testing network. Expect rough edges, and tell us honestly what breaks — that's the whole point.</div></div>
+    <div class="mt20" style="padding-bottom:28px">
+      <button class="btn btn-primary" data-act="go" data-arg="mode">Create my commute in the app</button>
+      <div class="mt12"></div><button class="btn btn-quiet" data-act="go" data-arg="landing">Back to start</button>
+    </div>
+  </div>`;
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Founding TAG Testers</div></div>
+  <div class="wrap">
+    <p class="sub">Join the first TAG network — declare your commute and we'll hand-match the earliest riders and drivers in your area. No spam, ever.</p>
+    <div class="field"><label>First name</label><input id="t_name" placeholder="Your name" autocomplete="off"></div>
+    <div class="field"><label>City</label><input id="t_city" value="Patna" autocomplete="off"></div>
+    <div class="field"><label>What do you need?</label>
+      <div class="chips">
+        <button class="chip ${T.mode==='rider'?'on':''}" data-act="tMode" data-arg="rider">I need a ride</button>
+        <button class="chip ${T.mode==='driver'?'on':''}" data-act="tMode" data-arg="driver">I have a seat</button>
+      </div></div>
+    <div class="field"><label>Starting area</label><input id="t_from" placeholder="e.g. Kankarbagh" autocomplete="off"></div>
+    <div class="field"><label>Destination area</label><input id="t_to" placeholder="e.g. Patna Airport" autocomplete="off"></div>
+    <div class="field"><label>Typical time</label><div class="timeinput"><input id="t_time" type="time" value="08:30"></div></div>
+    <div class="field"><label>Days</label><div class="chips">${DAY_ORDER.map(d=>`<button class="chip ${T.days.includes(d)?'on':''}" data-act="tDay" data-arg="${d}">${d}</button>`).join('')}</div></div>
+    <div class="field"><label>How often?</label>
+      <div class="chips">${['Every day','A few days a week','Occasionally'].map(f=>`<button class="chip ${T.freq===f?'on':''}" data-act="tFreq" data-arg="${f}">${f}</button>`).join('')}</div></div>
+    <div class="field"><label>WhatsApp number (optional)</label><input id="t_wa" placeholder="+91 ·····" inputmode="tel"></div>
+    <div class="consent mt12">
+      <input type="checkbox" id="t_consent">
+      <label for="t_consent" class="small dim" style="margin:0">Yes, TAG may contact me on WhatsApp about early matches in my area. This is the only reason it will be used.</label>
+    </div>
+    <div class="mt20" style="padding-bottom:28px">
+      <button class="btn btn-primary" data-act="testersSubmit">Join the first TAG network</button>
+      <p class="small dim center mt12">Early testing network · your details stay on this device in the demo build</p>
+    </div>
+  </div>`;
+}
+function testersSubmit(){
+  const name=($('#t_name')||{}).value||'';
+  const from=($('#t_from')||{}).value||'';
+  const to=($('#t_to')||{}).value||'';
+  if(!name.trim()||!from.trim()||!to.trim()){ toast('Add your name, start area and destination'); return; }
+  const wa=($('#t_wa')||{}).value||'';
+  const consent=$('#t_consent')?$('#t_consent').checked:false;
+  if(wa.trim()&&!consent){ toast('Tick the consent box so we know we may contact you'); return; }
+  S.testers.push({id:uid(),name:name.trim(),city:(($('#t_city')||{}).value||'Patna').trim(),mode:T.mode,from:from.trim(),to:to.trim(),
+    time:($('#t_time')||{}).value||'08:30',days:T.days.slice(),freq:T.freq||'',wa:wa.trim(),consent,createdAt:Date.now()});
+  S.testerDone=true; track('mode_selected',{mode:'tester'}); save(); render(); window.scrollTo(0,0);
+}
+
+/* ================= FOUNDER DASHBOARD ================= */
+const ADMIN_PIN='1234';
+function densityRows(){
+  const all=[...(S.commute?[S.commute]:[]),...DEMO_COMMUTES];
+  const corr={};
+  all.forEach(c=>{ const k=c.from+' → '+c.to; if(!corr[k])corr[k]={riders:0,providers:0,pairs:[]}; if(c.mode==='driver')corr[k].providers++; else corr[k].riders++; corr[k].list=(corr[k].list||[]).concat([c]); });
+  return Object.entries(corr).map(([k,v])=>{
+    let matches=0;
+    v.list.filter(c=>c.mode==='rider').forEach(r=>{
+      v.list.filter(c=>c.mode==='driver').forEach(d=>{ const m=compat(r,d); if(m.overall>=40&&m.r>=50)matches++; });
+    });
+    return {corridor:k,riders:v.riders,providers:v.providers,matches};
+  }).sort((a,b)=>(b.riders+b.providers)-(a.riders+a.providers));
+}
+function screenAdmin(){
+  if(!S.adminOk) return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Founder dashboard</div></div>
+  <div class="wrap" style="padding-top:32px">
+    <div class="center"><div class="empty-art">${ic('gauge')}</div>
+    <div class="h2 mt16">Protected view</div><p class="sub mt8">Enter the admin PIN to see validation metrics.</p></div>
+    <div class="field mt24"><label>PIN</label>
+      <div class="pinpill" style="display:flex;gap:8px;justify-content:center">${[0,1,2,3].map(i=>`<input maxlength="1" inputmode="numeric" class="pinbox" data-i="${i}" style="width:52px;height:58px;text-align:center;font-size:23px;font-family:var(--disp);font-weight:700;padding:0">`).join('')}</div>
+      <p class="small dim mt12">Demo build — PIN <b>1234</b>, client-side only. Production uses a protected admin route.</p></div>
+    <div class="mt20"><button class="btn btn-primary" data-act="adminCheck">Unlock</button></div>
+  </div>`;
+  const fb=S.feedback;
+  const exchanged=evCount('contact_shared');
+  const continuedTag=fb.filter(f=>(f.continued||'')==='Yes').length;
+  const stopped=fb.filter(f=>(f.continued||'')==='No').length;
+  const funnel=[['Landing view','landing_view'],['Mode selected','mode_selected'],['Commute created','commute_created'],['Match found','match_found'],['Match viewed','match_viewed'],['Connection requested','connection_requested'],['Connection accepted','connection_accepted'],['Ride scheduled','ride_scheduled'],['Ride completed','ride_completed'],['Repeat ride','repeat_ride']];
+  const max=Math.max(1,...funnel.map(([_,n])=>evCount(n)));
+  const st=(n,l)=>`<div class="stat"><div class="n">${n}</div><div class="l">${l}</div></div>`;
+  return `
+  <div class="screen-head"><button class="back" data-act="back">${ic('left')}</button><div class="title">Founder dashboard</div><span class="pill demo">Demo data</span></div>
+  <div class="wrap" style="padding-bottom:32px">
+    <div class="eyebrow gray mt12">Acquisition</div>
+    <div class="stats mt8">${st(S.testers.length,'Founding testers')}${st(evCount('landing_view'),'Landing views')}${st(evCount('user_returned'),'Return visits')}${st(S.reports.length,'Reports')}</div>
+
+    <div class="eyebrow gray mt28">Supply & demand</div>
+    <div class="stats mt8">${st(5+(S.mode==='driver'?1:0),'Seat providers')}${st(5+(S.mode==='rider'?1:0),'Ride seekers')}${st(DEMO_COMMUTES.length+(S.commute?1:0),'Declared commutes')}${st(S.commute?findMatches(S.commute).length:0,'Compatible matches (you)')}</div>
+
+    <div class="eyebrow gray mt28">Funnel</div>
+    <div class="card mt8">
+      ${funnel.map(([l,n])=>{const v=evCount(n);return `
+      <div class="fr"><div class="fl">${l}</div><div class="bar"><i style="width:${Math.max(4,Math.round(100*v/max))}%;display:block"></i></div><div class="fc">${v}</div></div>`;}).join('')}
+      <p class="small dim mt8">From this device's events only — real dashboards aggregate server-side.</p>
+    </div>
+
+    <div class="eyebrow gray mt28">Anti-bypass</div>
+    <div class="stats mt8">${st(exchanged,'Contact shared / left')}${st(continuedTag,'Continued on TAG')}${st(stopped,'Stopped using TAG')}${st(S.recurring?1:0,'Recurring commutes')}</div>
+    <div class="stats mt12">${st(evCount('backup_requested'),'Backups requested')}${st(evCount('repeat_ride'),'Repeat rides')}${st(evCount('feedback_submitted'),'Feedbacks')}${st(S.blocked.length,'Blocks')}</div>
+    <p class="small dim mt8">The core question: does TAG stay valuable after two people meet?</p>
+
+    <div class="eyebrow gray mt28">Network density</div>
+    <div class="card mt8 dtable">
+      ${densityRows().slice(0,5).map(r=>`
+        <div class="dr"><b>${esc(r.corridor)}</b><span class="dim small" style="text-align:right">${r.riders} rider${r.riders===1?'':'s'} · ${r.providers} seat provider${r.providers===1?'':'s'} · ${r.matches} compatible match${r.matches===1?'':'es'}</span></div>`).join('')}
+      <p class="small dim mt8">Where demand concentrates — this is where density seeding starts.</p>
+    </div>
+
+    <div class="eyebrow gray mt28">Founding testers</div>
+    <div class="card mt8 dtable">
+      ${S.testers.length?S.testers.map(t=>`
+        <div class="dr"><b>${esc(t.name)} · ${esc(t.city)}</b>
+        <span class="dim small" style="text-align:right">${esc(t.from)} → ${esc(t.to)} · ${t.mode==='driver'?'seat':'ride'}${t.consent?' · WhatsApp ok':''}</span></div>`).join('')
+      :'<p class="small dim">No testers yet — the signup form writes here.</p>'}
+    </div>
+
+    <div class="eyebrow gray mt28">Event log</div>
+    <div class="card mt8 dtable">
+      ${S.events.length?S.events.slice(-12).reverse().map(e=>`
+        <div class="dr"><b>${e.name}</b><span class="dim small">${niceDate(e.t)} · ${new Date(e.t).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>`).join('')
+      :'<p class="small dim">No events yet.</p>'}
+    </div>
+  </div>`;
+}
+
+/* ================= ROUTER ================= */
+let NAVSTACK=[];
+function go(screen){ if(S.screen)NAVSTACK.push(S.screen); S.screen=screen; save(); window.scrollTo(0,0); render(); }
+function goBack(){
+  const prev=NAVSTACK.pop();
+  const target=prev||((S.commute&&['match','backups','connected','feedback','recurringAsk'].includes(S.screen))?'commute':(S.commute?'commute':'landing'));
+  S.screen=target; save(); window.scrollTo(0,0); render();
+}
+function currentScreen(){
+  switch(S.screen){
+    case 'landing':return screenLanding();
+    case 'mode':return screenMode();
+    case 'create':return screenCreate();
+    case 'confirm':return screenConfirm();
+    case 'matches':return screenMatches();
+    case 'match':return screenMatch(S.matchId);
+    case 'connected':return screenConnected();
+    case 'commute':return screenCommute();
+    case 'backups':return screenBackups();
+    case 'activity':return screenActivity();
+    case 'feedback':return screenFeedback();
+    case 'recurringAsk':return screenRecurringAsk();
+    case 'profile':return screenProfile();
+    case 'safety':return screenSafety();
+    case 'testers':return screenTesters();
+    case 'admin':return screenAdmin();
+    default:return screenLanding();
+  }
+}
+function render(){
+  if(S.screen==='create'){
+    const g=id=>{const n=document.getElementById(id);return n?n.value:null;};
+    const v=g('f_from'); if(v!=null)F.from=v.trim();
+    const t=g('f_to'); if(t!=null)F.to=t.trim();
+    const tm=g('f_time'); if(tm)F.time=tm;
+    const ar=g('f_arr'); if(ar)F.arr=ar;
+  }
+  $('#app').innerHTML='<div class="screen">'+currentScreen()+'</div>';
+  const showNav=['commute','activity','profile','matches'].includes(S.screen);
+  $('#nav').className=showNav?'show':'';
+  if(showNav) renderNav();
+}
+function renderNav(){
+  const items=[['home','Home','home'],['commute','Commute','route'],['activity','Activity','activity'],['profile','Profile','user']];
+  $('#nav').innerHTML=items.map(([id,label,icon])=>{
+    const on=(id==='home'&&S.screen==='matches')||S.screen===id;
+    return `<button class="${on?'on':''}" data-act="nav" data-arg="${id}">${ic(icon)}<span>${label}</span></button>`;
+  }).join('');
+}
+
+/* ================= SHEET / TOAST / SHARE ================= */
+function openSheet(html){ $('#sheet').innerHTML='<div class="grab"></div>'+html; $('#overlay').classList.add('show'); }
+function closeSheet(){ $('#overlay').classList.remove('show'); }
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400); }
+function shareInvite(){
+  const c=S.commute;
+  const route=c?`${c.from} → ${c.to}`:'your route';
+  const msg=`I found an app that matches people who already commute the same route. If you're travelling ${route}, join me on TAG.`;
+  track('share_invited');
+  if(navigator.share){ navigator.share({text:msg}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(msg).then(()=>toast('Invite message copied — paste it anywhere')).catch(()=>fallbackCopy(msg)); }
+  else fallbackCopy(msg);
+}
+function fallbackCopy(msg){ openSheet(`
+  <div class="h2">Invite someone</div>
+  <p class="sub mt8">Copy this and send it to someone who travels your way.</p>
+  <div class="field"><textarea rows="4" id="inv_txt" readonly>${esc(msg)}</textarea></div>
+  <div class="mt16"><button class="btn btn-primary" data-act="copyInvite">Copy message</button></div>`);
+}
+function copyInvite(){ const t=$('#inv_txt'); t.select(); try{document.execCommand('copy');toast('Copied');}catch(e){} closeSheet(); }
+
+/* ================= INTERACTIONS ================= */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const act=el.getAttribute('data-act'), arg=el.getAttribute('data-arg');
+  switch(act){
+    case 'mode': go('mode'); break;
+    case 'start': startCreate(arg); break;
+    case 'back': goBack(); break;
+    case 'go': go(arg); break;
+    case 'nav': go(arg==='home'?(S.commute?'matches':'landing'):arg); break;
+    case 'safety': go('safety'); break;
+    case 'testers': go('testers'); break;
+    case 'fill': { const[f,v]=arg.split('|'); F[f]=v; render(); break; }
+    case 'day': { const i=F.days.indexOf(arg); if(i>=0)F.days.splice(i,1); else F.days.push(arg); render(); break; }
+    case 'seats': F.seats=parseInt(arg,10); render(); break;
+    case 'freq': F.freq=arg; render(); break;
+    case 'next': createNext(); break;
+    case 'prev': F.step--; render(); break;
+    case 'retryCreate': closeSheet(); submitCommute(); break;
+    case 'matches': case 'matches2': {
+      if(S.simError){ S.screen='matches'; render(); openSheet(`
+        <div class="errorbox"><div class="t">We couldn't load your matches.</div><div class="d">Check your connection and try again.</div>
+        <div class="mt16"><button class="btn btn-primary" data-act="retryMatches">Try again</button></div></div>`); return; }
+      matchesLoading=true; go('matches'); setTimeout(()=>{ matchesLoading=false; render(); },800); break; }
+    case 'retryMatches': { closeSheet(); matchesLoading=true; S.screen='matches'; render(); setTimeout(()=>{ matchesLoading=false; render(); },800); break; }
+    case 'view': S.matchId=arg; go('match'); break;
+    case 'viewRoute': viewRouteSheet(arg); break;
+    case 'saveMatch': { const i=S.saved.indexOf(arg); if(i>=0){S.saved.splice(i,1);toast('Removed from saved');} else {S.saved.push(arg);toast('Match saved');} save(); render(); break; }
+    case 'connect': openConnectSheet(arg); break;
+    case 'sendReq': sendRequest(arg); break;
+    case 'demoAccept': acceptConn(arg); break;
+    case 'shareContact': { const c=connActive(); if(c){ c.contactShared=true; track('contact_shared'); save(); render(); toast('Contact details shared with '+demoUser(c.user).name); } break; }
+    case 'rideAgain': { const c=connActive(); if(!c) break; const u=demoUser(c.user);
+      openSheet(`<div class="center"><div class="h2">Riding with ${esc(u.name)} today?</div>
+      <p class="sub mt8">Log the ride once it's done — TAG uses this to learn whether commutes repeat.</p></div>
+      <div class="mt20"><button class="btn btn-primary" data-act="logRide">Yes, we rode</button>
+      <div class="mt12"></div><button class="btn btn-quiet" data-act="closeSheet">Not today</button></div>`); break; }
+    case 'logRide': { const c=connActive(); if(!c) break;
+      const ride={id:uid(),conn:c.id,date:todayStr(),t:Date.now(),status:'completed'};
+      S.rides.push(ride); track('ride_scheduled'); track('ride_completed');
+      if(ridesFor(c.id).length>=2) track('repeat_ride');
+      closeSheet(); FB={step:1,rating:'',again:'',tag:''}; S.pendingFeedback=ride.id; save(); go('feedback'); break; }
+    case 'fb': { const[k,v]=arg.split('|'); FB[k]=v; render(); break; }
+    case 'fbNext': { if(FB.step===1&&!FB.rating){toast('Pick an answer to continue');break;} FB.step++; render(); break; }
+    case 'fbDone': fbDone(); break;
+    case 'makeRecurring': { S.recurring={since:Date.now()}; track('recurring_commute_started'); save(); toast('Recurring commute created'); go('commute'); break; }
+    case 'editCommute': { const c=S.commute;
+      F={step:1,from:c.from,to:c.to,time:c.time,arr:c.arr||'',days:c.days.slice(),seats:c.seats||0,freq:c.freq||'',note:c.note||''};
+      go('create'); break; }
+    case 'pauseCommute': { const c=S.commute; c.status=c.status==='paused'?'active':'paused';
+      toast(c.status==='paused'?'Commute paused — hidden from matching':'Commute resumed'); save(); render(); break; }
+    case 'reqBackup': { track('backup_requested',{target:arg}); toast('Backup requested — we\'ll reach out if your regular ride isn\'t available'); break; }
+    case 'report': openSheet(`<div class="h2">Report a problem</div>
+      <div class="field"><label>What happened?</label>
+        <div class="chips" id="repwrap">${['Safety concern','No-show','Behaviour','Other'].map(r=>`<button class="chip mini" data-rep="${r}">${r}</button>`).join('')}</div></div>
+      <div class="field"><label>Details (optional)</label><textarea id="rep_details" rows="3" placeholder="What went wrong?"></textarea></div>
+      <div class="mt16"><button class="btn btn-primary" data-act="sendReport">Send report</button>
+      <div class="mt12"></div><button class="btn btn-quiet" data-act="closeSheet">Cancel</button></div>`); break;
+    case 'sendReport': { S.reports.push({id:uid(),reason:(document.querySelector('#repwrap .chip.on')||{}).textContent||'Other',details:($('#rep_details')||{}).value||'',t:Date.now()});
+      track('report_created'); save(); closeSheet(); toast('Report recorded — a human will review it'); break; }
+    case 'blockAny': case 'blockUser': {
+      if(act==='blockUser'){ doBlock(arg); break; }
+      const conn=connActive();
+      openSheet(`<div class="h2">Block a user</div>
+      ${conn?`<p class="sub mt8">Block ${esc(demoUser(conn.user).name)} (your current match)? They can't see or contact you afterwards.</p>`:`<p class="sub mt8">You have no active connections. Blocking applies to matched users from their profile.</p>`}
+      <div class="mt16">${conn?`<button class="btn btn-danger" data-act="blockUser" data-arg="${conn.user}">Block ${esc(demoUser(conn.user).name)}</button>`:''}
+      <div class="mt12"></div><button class="btn btn-quiet" data-act="closeSheet">Cancel</button></div>`); break; }
+    case 'endConn': { const c=connActive(); if(c){ c.status='ended'; c.endedAt=Date.now(); track('ride_cancelled'); }
+      S.activeConn=null; S.recurring=null; save(); toast('Commute ended'); go('commute'); break; }
+    case 'share': shareInvite(); break;
+    case 'copyInvite': copyInvite(); break;
+    case 'closeSheet': closeSheet(); break;
+    case 'tMode': T.mode=arg; render(); break;
+    case 'tDay': { const i=T.days.indexOf(arg); if(i>=0)T.days.splice(i,1); else T.days.push(arg); render(); break; }
+    case 'tFreq': T.freq=arg; render(); break;
+    case 'testersSubmit': testersSubmit(); break;
+    case 'toggleErr': S.simError=!S.simError; save(); render(); break;
+    case 'reset': resetAll(); break;
+    case 'admin': go('admin'); break;
+    case 'adminCheck': { const v=[...document.querySelectorAll('.pinbox')].map(b=>b.value).join('');
+      if(v===ADMIN_PIN){ S.adminOk=true; save(); render(); } else toast('Wrong PIN'); break; }
+  }
+});
+function doBlock(userId){
+  const u=demoUser(userId);
+  openSheet(`<div class="center"><div class="h2">Block ${esc(u.name)}?</div>
+  <p class="sub mt8">They won't be able to see or contact you. Any connection with them ends immediately.</p></div>
+  <div class="mt20"><button class="btn btn-danger" data-act="doBlock" data-arg="${userId}">Yes, block ${esc(u.name)}</button>
+  <div class="mt12"></div><button class="btn btn-quiet" data-act="closeSheet">Cancel</button></div>`);
+}
+/* report reason chips */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('#repwrap .chip'); if(!c) return;
+  [...document.querySelectorAll('#repwrap .chip')].forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');
+});
+document.addEventListener('input',e=>{
+  if(e.target.classList&&e.target.classList.contains('pinbox')){
+    const i=parseInt(e.target.getAttribute('data-i'),10);
+    if(e.target.value&&i<3) document.querySelector(`.pinbox[data-i="${i+1}"]`).focus();
+  }
+  if(e.target.id==='p_name'){ S.name=e.target.value; save(); }
+});
+
+/* ================= INIT ================= */
+(function init(){
+  if(S.commute&&S.events.length){
+    const last=S.events[S.events.length-1].t;
+    if(Date.now()-last>60*60*1000) track('user_returned');
+  }
+  render();
+})();
+</script>
+</div>
+</body>
+</html>
