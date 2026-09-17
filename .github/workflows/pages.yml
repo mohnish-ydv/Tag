@@ -1,4 +1,4 @@
-name: Deploy Reference Gallery
+name: Deploy Tag + Reference
 
 on:
   push:
@@ -15,24 +15,40 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tag
+        run: npm run build
+
+      - name: Prepare reference gallery
+        run: |
+          mkdir -p dist/reference
+
+          cp -r public/reference-gallery/* dist/reference/
+
+          cp public/reference/home-reference.png dist/reference/home-reference.png
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload gallery
+      - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './public/reference-gallery'
+          path: './dist'
 
       - name: Deploy
         id: deployment
