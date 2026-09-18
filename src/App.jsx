@@ -1,1285 +1,931 @@
 import { useState } from 'react'
-import './index.css'
 
-const people = [
-  { name: 'Aarav Sharma', age: 22, route: 'Patna → New Delhi', time: 'Tomorrow · 7:30 AM', rating: '4.9' },
-  { name: 'Ananya Singh', age: 21, route: 'Patna → New Delhi', time: 'Tomorrow · 8:00 AM', rating: '4.8' },
-  { name: 'Riya Verma', age: 23, route: 'Patna → Lucknow', time: 'Fri · 6:00 AM', rating: '4.9' },
-]
+function Icon({ name, size = 20, stroke = 1.8 }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: stroke,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    className: 'icon',
+    'aria-hidden': true,
+  }
 
-const places = ['Home', 'College', 'Work']
+  const paths = {
+    menu: <><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></>,
+    back: <><path d="M15 18l-6-6 6-6"/></>,
+    arrow: <><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></>,
+    down: <path d="M6 9l6 6 6-6"/>,
+    up: <path d="M6 15l6-6 6 6"/>,
+    search: <><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></>,
+    bell: <><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 8h18c0-1-3-1-3-8"/><path d="M10 21h4"/></>,
+    pin: <><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
+    target: <><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></>,
+    users: <><circle cx="9" cy="8" r="3"/><path d="M3 20c.5-4 2.5-6 6-6s5.5 2 6 6"/><path d="M16 5.5a3 3 0 0 1 0 5.8"/><path d="M17 14c2.5.5 3.8 2.2 4 5"/></>,
+    user: <><circle cx="12" cy="8" r="3.5"/><path d="M4 21c.7-4.5 3.3-7 8-7s7.3 2.5 8 7"/></>,
+    home: <><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/></>,
+    chat: <><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 9.6 9.6 0 0 1-3.4-.6L4 20l1.6-3.7A7.3 7.3 0 0 1 4 11.5 7.5 7.5 0 0 1 12 4a7.5 7.5 0 0 1 8 7.5Z"/></>,
+    heart: <path d="M20.8 8.7c0 5.2-8.8 10.3-8.8 10.3S3.2 13.9 3.2 8.7A4.7 4.7 0 0 1 12 6.3a4.7 4.7 0 0 1 8.8 2.4Z"/>,
+    clock: <><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></>,
+    check: <><circle cx="12" cy="12" r="9"/><path d="m8 12 2.5 2.5L16 9"/></>,
+    plus: <><path d="M12 5v14"/><path d="M5 12h14"/></>,
+    close: <><path d="m6 6 12 12"/><path d="m18 6-12 12"/></>,
+    edit: <><path d="m4 20 4-.8L19 8.2a2 2 0 0 0-3-3L5 16l-1 4Z"/><path d="m14 6 4 4"/></>,
+    shield: <><path d="M12 3 19 6v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z"/><path d="m9 12 2 2 4-4"/></>,
+    more: <><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
+  }
+
+  return <svg {...common}>{paths[name] || paths.user}</svg>
+}
 
 function Logo() {
-  return <div className="logo">tag<span>.</span></div>
+  return <div className="logo">tag.</div>
 }
 
-function Back({ go }) {
-  return <button className="back" onClick={() => go(-1)}>‹</button>
-}
-
-function Primary({ children, onClick }) {
-  return <button className="primary" onClick={onClick}>{children}<span>→</span></button>
-}
-
-function Header({ title, go }) {
+function Button({ children, variant = 'primary', onClick, small = false }) {
   return (
-    <header className="inner-header">
-      <Back go={go} />
-      <strong>{title}</strong>
-      <span className="header-spacer" />
+    <button className={`btn btn-${variant}${small ? ' btn-sm' : ''}`} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+
+function Header({ title, back, onBack, right }) {
+  return (
+    <header className="header">
+      <div className="header-left">
+        {back && (
+          <button className="icon-btn" onClick={onBack} aria-label="Back">
+            <Icon name="back" />
+          </button>
+        )}
+        {title ? <h1 className="header-title">{title}</h1> : <Logo />}
+      </div>
+      <div className="header-right">{right}</div>
     </header>
   )
 }
 
-function Avatar({ name = 'Mohnish', size = '' }) {
-  return (
-    <div className={`avatar ${size}`}>
-      {name.split(' ').map(x => x[0]).join('').slice(0, 2)}
-    </div>
-  )
+function Avatar({ name = 'Tag', size = '' }) {
+  const initials = name
+    .split(' ')
+    .map(x => x[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
+  return <div className={`avatar ${size}`}>{initials}</div>
 }
 
-function Field({ label, placeholder, value, onChange, type = 'text' }) {
-  return (
-    <label className="field">
-      <span>{label}</span>
-      <div>
-        <input
-          type={type}
-          placeholder={placeholder}
-          value={value}
-          onChange={e => onChange?.(e.target.value)}
-        />
-      </div>
-    </label>
-  )
-}
+function BottomNav({ page, go }) {
+  const items = [
+    ['home', 'Home', 'home'],
+    ['users', 'Discover', 'discover'],
+    ['chat', 'Tags', 'tags'],
+    ['clock', 'Activity', 'activity'],
+    ['user', 'Profile', 'profile'],
+  ]
 
-/* ---------- REFERENCE-LANGUAGE MAP ---------- */
-
-function Map() {
-  return (
-    <div className="map">
-      <div className="map-grid" />
-      <div className="road r1" />
-      <div className="road r2" />
-      <div className="road r3" />
-      <div className="road r4" />
-      <span className="street a">Fraser Road</span>
-      <span className="street b">Bailey Road</span>
-      <span className="street c">Station Road</span>
-      <div className="map-water" />
-      <div className="map-pin" />
-      <button className="locate">⌖</button>
-    </div>
-  )
-}
-
-/* ---------- ONBOARDING ---------- */
-
-function Onboarding({ n, go }) {
-  const data = [
-    ['Meet people along your way', 'Turn ordinary journeys into shared experiences.', '✦'],
-    ['Find the right match', 'Discover people heading your way, with profiles you can trust.', '◎'],
-    ['Keep the journey on Tag', 'Chat, coordinate and complete your journey without giving up your privacy.', '↗'],
-  ][n]
-
-  return (
-    <div className="plain onboarding">
-      <div className="onboard-art">{data[2]}</div>
-
-      <div className="dots">
-        {[0, 1, 2].map(i => <i className={i === n ? 'on' : ''} key={i} />)}
-      </div>
-
-      <div className="onboard-copy">
-        <Logo />
-        <h1>{data[0]}</h1>
-        <p>{data[1]}</p>
-      </div>
-
-      <Primary onClick={() => go(n === 2 ? 'welcome' : 1)}>
-        Continue
-      </Primary>
-
-      <button className="text-btn" onClick={() => go('welcome')}>
-        Skip
-      </button>
-    </div>
-  )
-}
-
-/* ---------- AUTH ---------- */
-
-function Otp({ go, title, next }) {
-  return (
-    <div className="plain auth">
-      <Logo />
-      <h1>{title}</h1>
-      <p className="muted">
-        We sent a 6-digit code to your mobile number.
-      </p>
-
-      <div className="otp">
-        {[1, 2, 3, 4, 5, 6].map(i =>
-          <input key={i} maxLength="1" inputMode="numeric" />
-        )}
-      </div>
-
-      <button className="resend">
-        Didn't receive it? <b>Resend</b>
-      </button>
-
-      <Primary onClick={() => go(next)}>Verify</Primary>
-    </div>
-  )
-}
-
-function ProfileSetup({ go }) {
-  return (
-    <div className="plain auth">
-      <Header title="Complete profile" go={go} />
-
-      <div className="profile-photo">
-        <Avatar size="lg" />
-        <button>+</button>
-      </div>
-
-      <h1>Tell people about you</h1>
-      <p className="muted">
-        Only share what you're comfortable with.
-      </p>
-
-      <Field label="Full name" placeholder="Mohnish Raj" />
-      <Field label="Age" placeholder="22" />
-      <Field label="City" placeholder="Patna" />
-
-      <Primary onClick={() => go('home')}>Finish</Primary>
-    </div>
-  )
-}
-
-function Auth({ mode, go }) {
-  const [phone, setPhone] = useState('')
-  const [password, setPassword] = useState('')
-
-  if (mode === 'welcome') {
-    return (
-      <div className="plain welcome">
-        <Logo />
-
-        <div className="welcome-art">
-          <div className="orbit o1" />
-          <div className="orbit o2" />
-          <b>TAG</b>
-        </div>
-
-        <h1>
-          Find your people.<br />
-          <em>Make the journey together.</em>
-        </h1>
-
-        <p>
-          A safer way to discover, connect and stay in control.
-        </p>
-
-        <Primary onClick={() => go('signup')}>
-          Get started
-        </Primary>
-
-        <button className="secondary" onClick={() => go('signin')}>
-          I already have an account
-        </button>
-      </div>
-    )
-  }
-
-  if (mode === 'signup') {
-    return (
-      <div className="plain auth">
-        <Logo />
-        <h1>Create your account</h1>
-        <p className="muted">A few details and you're ready to Tag.</p>
-
-        <Field
-          label="Mobile number"
-          placeholder="+91 98765 43210"
-          value={phone}
-          onChange={setPhone}
-        />
-
-        <Field label="Email" placeholder="you@example.com" />
-
-        <Primary onClick={() => go('otp')}>Continue</Primary>
-
-        <p className="switch">
-          Already have an account?
-          <button onClick={() => go('signin')}>Sign in</button>
-        </p>
-      </div>
-    )
-  }
-
-  if (mode === 'signin') {
-    return (
-      <div className="plain auth">
-        <Logo />
-        <h1>Welcome back</h1>
-        <p className="muted">Sign in to continue your journey.</p>
-
-        <Field
-          label="Mobile number"
-          placeholder="+91 98765 43210"
-          value={phone}
-          onChange={setPhone}
-        />
-
-        <Field
-          label="Password"
-          placeholder="Your password"
-          type="password"
-          value={password}
-          onChange={setPassword}
-        />
-
-        <button className="forgot" onClick={() => go('forgot')}>
-          Forgot password?
-        </button>
-
-        <Primary onClick={() => go('home')}>Sign in</Primary>
-
-        <p className="switch">
-          New to Tag?
-          <button onClick={() => go('signup')}>Create account</button>
-        </p>
-      </div>
-    )
-  }
-
-  if (mode === 'otp') {
-    return <Otp go={go} title="Verify your number" next="profile" />
-  }
-
-  if (mode === 'forgot') {
-    return (
-      <div className="plain auth">
-        <Logo />
-        <h1>Reset password</h1>
-        <p className="muted">
-          Enter your mobile number and we'll send a verification code.
-        </p>
-
-        <Field label="Mobile number" placeholder="+91 98765 43210" />
-
-        <Primary onClick={() => go('phone-otp')}>
-          Send code
-        </Primary>
-      </div>
-    )
-  }
-
-  if (mode === 'phone-otp') {
-    return <Otp go={go} title="Verify to reset password" next="new-password" />
-  }
-
-  if (mode === 'new-password') {
-    return (
-      <div className="plain auth">
-        <Header title="New password" go={go} />
-        <h1>Set a new password</h1>
-
-        <Field
-          label="New password"
-          placeholder="Minimum 8 characters"
-          type="password"
-        />
-
-        <Field
-          label="Confirm password"
-          placeholder="Repeat password"
-          type="password"
-        />
-
-        <Primary onClick={() => go('signin')}>
-          Update password
-        </Primary>
-      </div>
-    )
-  }
-
-  if (mode === 'profile') return <ProfileSetup go={go} />
-}
-
-/* ---------- MAIN NAV ---------- */
-
-function BottomNav({ go, active }) {
   return (
     <nav className="bottom-nav">
-      {[
-        ['home', '⌂', 'Home'],
-        ['discover', '⌕', 'Discover'],
-        ['tags', '◇', 'Tags'],
-        ['activity', '◷', 'Activity'],
-        ['profile', '○', 'Profile'],
-      ].map(x => (
+      {items.map(([icon, label, route]) => (
         <button
-          className={active === x[0] ? 'active' : ''}
-          key={x[0]}
-          onClick={() => go(x[0])}
+          key={route}
+          className={`nav-item ${page === route ? 'active' : ''}`}
+          onClick={() => go(route)}
         >
-          <span>{x[1]}</span>
-          <small>{x[2]}</small>
+          <Icon name={icon} />
+          <span>{label}</span>
         </button>
       ))}
     </nav>
   )
 }
 
-/* ---------- HOME ---------- */
+function Intro({ go }) {
+  return (
+    <main className="center-screen">
+      <div className="center-content">
+        <div className="art-placeholder">
+          <span>Tag illustration</span>
+        </div>
 
-function Home({ go }) {
-  const [destination, setDestination] = useState('')
+        <h1 className="t-display">Find your people.</h1>
+        <p className="t-body mt-12">
+          Make the journey together. Discover people going your way,
+          connect safely, and keep the experience on Tag.
+        </p>
+
+        <div className="dots">
+          <span className="dot active" />
+          <span className="dot" />
+          <span className="dot" />
+        </div>
+      </div>
+
+      <div className="auth-actions stack-12">
+        <Button onClick={() => go('welcome')}>Get Started</Button>
+        <Button variant="secondary" onClick={() => go('welcome')}>I already have an account</Button>
+      </div>
+    </main>
+  )
+}
+
+function Welcome({ go }) {
+  return (
+    <main className="center-screen">
+      <div className="center-content">
+        <Logo />
+
+        <div className="mt-32">
+          <h1 className="t-display">Welcome to Tag</h1>
+          <p className="t-body mt-12">
+            A simple way to find people around your journey
+            and build useful connections without losing control
+            of your privacy.
+          </p>
+        </div>
+      </div>
+
+      <div className="auth-actions stack-12">
+        <Button onClick={() => go('signup')}>Create account</Button>
+        <Button variant="secondary" onClick={() => go('signin')}>Sign in</Button>
+      </div>
+    </main>
+  )
+}
+
+function Auth({ mode, go }) {
+  const signup = mode === 'signup'
 
   return (
-    <div className="screen">
-      <Map />
+    <main className="screen">
+      <Header
+        back
+        onBack={() => go('welcome')}
+        title={signup ? 'Create account' : 'Sign in'}
+      />
 
-      <header className="floating-header">
-        <button className="round" onClick={() => go('menu')}>☰</button>
-        <Logo />
-        <button className="round" onClick={() => go('notifications')}>
-          ♢<i />
-        </button>
-      </header>
-
-      <div className="map-label">● Patna</div>
-
-      <section className="home-sheet">
-        <div className="handle" />
-
-        <div className="sheet-title">
+      <section className="section">
+        <div className="stack-24">
           <div>
-            <small>YOUR JOURNEY</small>
-            <h1>Where are you going?</h1>
+            <h2 className="t-title">{signup ? 'Create your Tag account' : 'Welcome back'}</h2>
+            <p className="t-body mt-8">
+              {signup
+                ? 'A few details and you are ready to start.'
+                : 'Sign in to continue your journey.'}
+            </p>
           </div>
-          <button className="mini" onClick={() => go('discover')}>⌕</button>
-        </div>
 
-        <div className="chips">
-          {places.map(p =>
-            <button key={p} onClick={() => setDestination(p)}>
-              ⌂ {p}
-            </button>
+          {signup && (
+            <div className="row" style={{ gap: 12 }}>
+              <Avatar name="You" size="lg" />
+              <button className="btn btn-secondary btn-sm">Add photo</button>
+            </div>
           )}
-        </div>
 
-        <button className="destination" onClick={() => go('location')}>
-          <span>⌖</span>
-          <b>{destination || 'Where do you want to go?'}</b>
-          <em>›</em>
-        </button>
+          {signup && (
+            <div className="field-group">
+              <p className="t-label">Full name</p>
+              <input className="field" placeholder="Enter your name" />
+            </div>
+          )}
 
-        <div className="divider" />
-
-        <div className="near-head">
-          <div>
-            <small>NEAR YOUR ROUTE</small>
-            <h2>People travelling nearby</h2>
+          <div className="field-group">
+            <p className="t-label">Mobile number</p>
+            <input className="field" inputMode="tel" placeholder="+91 00000 00000" />
           </div>
-          <button onClick={() => go('discover')}>See all</button>
+
+          <div className="field-group">
+            <p className="t-label">Password</p>
+            <input className="field" type="password" placeholder="Enter password" />
+          </div>
         </div>
 
-        <div className="people-row">
-          {people.map(p =>
-            <button
-              className="person-card"
-              key={p.name}
-              onClick={() => go('person')}
-            >
-              <Avatar name={p.name} />
-              <div>
-                <strong>{p.name}, {p.age}</strong>
-                <span>{p.time}</span>
-              </div>
-              <b>★ {p.rating}</b>
+        <div className="mt-32 stack-12">
+          <Button onClick={() => go(signup ? 'profile-setup' : 'home')}>
+            {signup ? 'Continue' : 'Sign in'}
+          </Button>
+
+          {!signup && (
+            <button className="btn btn-ghost" onClick={() => go('signup')}>
+              Create a new account
             </button>
           )}
         </div>
       </section>
-
-      <BottomNav go={go} active="home" />
-    </div>
+    </main>
   )
 }
 
-/* ---------- DISCOVER ---------- */
+function ProfileSetup({ go }) {
+  return (
+    <main className="screen">
+      <Header title="Complete your profile" />
+
+      <section className="section">
+        <div className="stack-24">
+          <div>
+            <h2 className="t-title">Tell people a little about you</h2>
+            <p className="t-body mt-8">
+              Only share what you are comfortable sharing.
+            </p>
+          </div>
+
+          <div className="row" style={{ justifyContent: 'center' }}>
+            <Avatar name="Mohnish Raj" size="lg" />
+          </div>
+
+          <div className="field-group">
+            <p className="t-label">About you</p>
+            <textarea className="field" placeholder="What should people know?" />
+          </div>
+
+          <div className="field-group">
+            <p className="t-label">Your usual journey</p>
+            <input className="field" placeholder="e.g. Patna → Bihta" />
+          </div>
+        </div>
+
+        <div className="mt-32">
+          <Button onClick={() => go('home')}>Finish profile</Button>
+        </div>
+      </section>
+    </main>
+  )
+}
+
+function Home({ go }) {
+  return (
+    <main className="screen tag-home">
+
+      {/* Journey surface */}
+      <div className="tag-map">
+        <div className="map-land land-a" />
+        <div className="map-land land-b" />
+
+        <div className="map-line line-a" />
+        <div className="map-line line-b" />
+        <div className="map-line line-c" />
+        <div className="map-line line-d" />
+
+        <div className="journey-route">
+          <span className="route-start" />
+          <span className="route-destination" />
+        </div>
+
+        <div className="you-marker">
+          <span />
+        </div>
+      </div>
+
+      {/* App chrome */}
+      <header className="tag-home-header">
+        <button
+          className="tag-control"
+          onClick={() => go('profile')}
+          aria-label="Open profile"
+        >
+          <Icon name="menu" size={21} />
+        </button>
+
+        <Logo />
+
+        <button
+          className="tag-control"
+          onClick={() => go('activity')}
+          aria-label="Notifications"
+        >
+          <Icon name="bell" size={21} />
+        </button>
+      </header>
+
+      {/* Context indicator */}
+      <div className="journey-context">
+        <span className="context-dot" />
+        <span>Ready to Tag</span>
+      </div>
+
+      {/* Main journey surface */}
+      <section className="tag-home-sheet">
+
+        <div className="sheet-grabber" />
+
+        <div className="sheet-heading">
+          <div>
+            <p className="sheet-eyebrow">YOUR JOURNEY</p>
+            <h1>Where are you headed?</h1>
+          </div>
+
+          <button
+            className="location-control"
+            onClick={() => go('location')}
+            aria-label="Use current location"
+          >
+            <Icon name="target" size={20} />
+          </button>
+        </div>
+
+        <button
+          className="journey-input"
+          onClick={() => go('location')}
+        >
+          <span className="journey-input-icon">
+            <Icon name="search" size={21} />
+          </span>
+
+          <span className="journey-input-copy">
+            <strong>Find a journey</strong>
+            <small>Discover people going your way</small>
+          </span>
+
+          <Icon name="arrow" size={19} />
+        </button>
+
+        <div className="home-discovery">
+          <div className="home-discovery-heading">
+            <div>
+              <p className="sheet-eyebrow">AROUND YOU</p>
+              <h2>People on your route</h2>
+            </div>
+
+            <button onClick={() => go('discover')}>
+              See all
+            </button>
+          </div>
+
+          <div className="route-people">
+
+            <button className="route-person" onClick={() => go('match')}>
+              <Avatar name="Aarav Sharma" size="sm" />
+
+              <div className="route-person-copy">
+                <strong>Aarav Sharma</strong>
+                <span>Patna → Danapur</span>
+              </div>
+
+              <span className="route-match">92%</span>
+            </button>
+
+            <button className="route-person" onClick={() => go('match')}>
+              <Avatar name="Ananya Singh" size="sm" />
+
+              <div className="route-person-copy">
+                <strong>Ananya Singh</strong>
+                <span>Patna → Bihta</span>
+              </div>
+
+              <span className="route-match">87%</span>
+            </button>
+
+          </div>
+        </div>
+
+      </section>
+
+      {/* Primary creation action */}
+      <button
+        className="create-tag"
+        onClick={() => go('location')}
+        aria-label="Create a Tag"
+      >
+        <span className="create-tag-icon">
+          <Icon name="plus" size={25} stroke={2} />
+        </span>
+        <span>Create Tag</span>
+      </button>
+
+      {/* Tag navigation */}
+      <nav className="tag-bottom-nav">
+
+        <button className="tag-nav active" onClick={() => go('home')}>
+          <Icon name="home" size={21} />
+          <span>Home</span>
+        </button>
+
+        <button className="tag-nav" onClick={() => go('discover')}>
+          <Icon name="users" size={21} />
+          <span>Discover</span>
+        </button>
+
+        <button className="tag-nav tag-nav-create" onClick={() => go('location')}>
+          <span className="create-nav-circle">
+            <Icon name="plus" size={22} />
+          </span>
+          <span>Tag</span>
+        </button>
+
+        <button className="tag-nav" onClick={() => go('activity')}>
+          <Icon name="clock" size={21} />
+          <span>Activity</span>
+        </button>
+
+        <button className="tag-nav" onClick={() => go('profile')}>
+          <Icon name="user" size={21} />
+          <span>Profile</span>
+        </button>
+
+      </nav>
+
+    </main>
+  )
+}
 
 function Discover({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Discover" go={go} />
+    <main className="screen">
+      <Header
+        title="Discover"
+        right={
+          <button className="icon-btn outline">
+            <Icon name="target" />
+          </button>
+        }
+      />
 
-      <div className="searchbar">
-        ⌕ <input placeholder="Search destination or route" />
-      </div>
-
-      <div className="section-title">
-        <small>PEOPLE HEADING YOUR WAY</small>
-        <h1>Find a match</h1>
-      </div>
-
-      <div className="route-card">
-        <div><span>FROM</span><b>Patna</b></div>
-        <i>→</i>
-        <div><span>TO</span><b>New Delhi</b></div>
-      </div>
-
-      <div className="filter-row">
-        <button className="selected">Tomorrow</button>
-        <button>Morning</button>
-        <button>2 seats</button>
-      </div>
-
-      {people.map(p =>
-        <button
-          className="discover-card"
-          key={p.name}
-          onClick={() => go('person')}
-        >
-          <Avatar name={p.name} size="lg" />
-          <div className="dcopy">
-            <strong>{p.name}, {p.age}</strong>
-            <span>★ {p.rating} · Verified</span>
-            <p>{p.route}</p>
-            <small>{p.time}</small>
+      <div className="screen-scroll">
+        <section className="section compact">
+          <div className="search-box">
+            <Icon name="search" size={18} />
+            <input placeholder="Search people or journeys" />
           </div>
-          <em>›</em>
-        </button>
-      )}
+        </section>
 
-      <BottomNav go={go} active="discover" />
-    </div>
+        <section className="section compact">
+          <div className="chips">
+            <button className="chip active">All</button>
+            <button className="chip">Going my way</button>
+            <button className="chip">Nearby</button>
+            <button className="chip">Same destination</button>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="section-head">
+            <h2 className="section-title">Recommended for you</h2>
+          </div>
+
+          <div className="stack-12">
+            {[
+              ['Aarav Sharma', 'Patna → Danapur', '92% match'],
+              ['Ananya Singh', 'Patna → Bihta', '87% match'],
+              ['Rahul Kumar', 'Kankarbagh → Patliputra', '81% match'],
+              ['Priya Verma', 'Patna → Hajipur', '76% match'],
+            ].map(([name, journey, match]) => (
+              <button className="card person-card" key={name} onClick={() => go('match')}>
+                <Avatar name={name} />
+                <div className="person-info">
+                  <p className="person-name">{name}</p>
+                  <p className="person-meta">{journey}</p>
+                  <div className="mt-8">
+                    <span className="badge success">{match}</span>
+                  </div>
+                </div>
+                <Icon name="arrow" size={18} />
+              </button>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <BottomNav page="discover" go={go} />
+    </main>
   )
 }
-
-/* ---------- LOCATION ---------- */
 
 function Location({ go }) {
-  const [q, setQ] = useState('')
-
   return (
-    <div className="plain page">
-      <Header title="Choose destination" go={go} />
-
-      <div className="location-search">
-        <span>⌕</span>
-        <input
-          autoFocus
-          value={q}
-          onChange={e => setQ(e.target.value)}
-          placeholder="Search a place"
-        />
-        <button>×</button>
+    <main className="location-screen">
+      <div className="home-map">
+        <div className="map-water" style={{ width: 300, height: 180, left: -80, top: 80 }} />
+        <div className="map-road" style={{ width: 500, left: -50, top: 300, transform: 'rotate(20deg)' }} />
+        <div className="map-road" style={{ width: 460, left: -20, top: 500, transform: 'rotate(-13deg)' }} />
+        <div className="map-point" style={{ left: 190, top: 285 }} />
+        <div className="map-point" style={{ left: 275, top: 510 }} />
       </div>
 
-      <div className="map-mini">
-        <Map />
-      </div>
+      <div className="location-ui">
+        <div style={{ padding: 16 }}>
+          <button className="icon-btn outline" onClick={() => go('home')}>
+            <Icon name="back" />
+          </button>
+        </div>
 
-      <div className="location-list">
-        <button onClick={() => go('confirm')}>
-          <span>⌖</span>
-          <div>
-            <b>Patna Junction</b>
-            <small>Fraser Road, Patna</small>
+        <div className="location-card">
+          <div className="sheet-handle" />
+
+          <h2 className="t-title">Set your journey</h2>
+          <p className="t-body mt-8">Choose where you are starting and where you are going.</p>
+
+          <div className="mt-20">
+            <div className="route-row">
+              <span className="route-dot" />
+              <div>
+                <p className="t-small">FROM</p>
+                <p className="t-body-strong">Patna, Bihar</p>
+              </div>
+            </div>
+
+            <div className="route-line" />
+
+            <div className="route-row">
+              <span className="route-dot end" />
+              <div>
+                <p className="t-small">TO</p>
+                <p className="t-body-strong">Search destination</p>
+              </div>
+            </div>
           </div>
-          <em>›</em>
-        </button>
 
-        <button onClick={() => go('confirm')}>
-          <span>⌂</span>
-          <div>
-            <b>Home</b>
-            <small>Patna, Bihar</small>
-          </div>
-          <em>›</em>
-        </button>
-      </div>
-    </div>
-  )
-}
-
-/* ---------- CREATE / MATCH ---------- */
-
-function Confirm({ go }) {
-  return (
-    <div className="screen">
-      <Map />
-
-      <div className="confirm-card">
-        <Header title="Confirm location" go={go} />
-
-        <div className="selected-place">
-          <span>⌖</span>
-          <div>
-            <small>DESTINATION</small>
-            <h2>Patna Junction</h2>
-            <p>Fraser Road, Patna</p>
+          <div className="mt-20">
+            <Button onClick={() => go('match')}>Find people</Button>
           </div>
         </div>
-
-        <Primary onClick={() => go('create')}>
-          Use this location
-        </Primary>
       </div>
-    </div>
+    </main>
   )
 }
 
-function CreateTag({ go }) {
+function Match({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Create a Tag" go={go} />
+    <main className="screen">
+      <Header
+        title="Match"
+        back
+        onBack={() => go('discover')}
+        right={<button className="icon-btn outline"><Icon name="more" /></button>}
+      />
 
-      <div className="section-title">
-        <small>START A JOURNEY</small>
-        <h1>What are you looking for?</h1>
-      </div>
+      <div className="screen-scroll">
+        <section className="detail-content">
+          <div className="hero-card">
+            <div className="hero-card-media" />
+            <div className="hero-card-body">
+              <div className="row-between">
+                <div className="row" style={{ gap: 12 }}>
+                  <Avatar name="Aarav Sharma" size="sm" />
+                  <div>
+                    <p className="person-name">Aarav Sharma</p>
+                    <p className="person-meta">92% journey match</p>
+                  </div>
+                </div>
+                <span className="badge success">Verified</span>
+              </div>
 
-      <div className="choice-grid">
-        <button className="choice selected" onClick={() => go('tag-details')}>
-          <b>↗</b>
-          <strong>Ride together</strong>
-          <span>Share a route and split the journey.</span>
-        </button>
-
-        <button className="choice" onClick={() => go('tag-details')}>
-          <b>◎</b>
-          <strong>Meet nearby</strong>
-          <span>Find someone heading your way.</span>
-        </button>
-      </div>
-
-      <Field label="Where are you going?" placeholder="Patna Junction" />
-      <Field label="When?" placeholder="Tomorrow · 7:30 AM" />
-
-      <Primary onClick={() => go('tag-details')}>
-        Continue
-      </Primary>
-    </div>
-  )
-}
-
-function TagDetails({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Tag details" go={go} />
-
-      <div className="tag-preview">
-        <span>↗</span>
-        <div>
-          <small>YOUR TAG</small>
-          <h2>Patna → New Delhi</h2>
-          <p>Tomorrow · 7:30 AM</p>
-        </div>
-      </div>
-
-      <div className="detail-row">
-        <span>Seats</span>
-        <b>2</b>
-        <button>−</button>
-        <button>+</button>
-      </div>
-
-      <div className="detail-row">
-        <span>Preference</span>
-        <b>Verified people</b>
-        <em>›</em>
-      </div>
-
-      <div className="detail-row">
-        <span>Visibility</span>
-        <b>Public</b>
-        <em>›</em>
-      </div>
-
-      <Primary onClick={() => go('matching')}>
-        Find people
-      </Primary>
-    </div>
-  )
-}
-
-function Matching({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="People for your Tag" go={go} />
-
-      <div className="match-banner">
-        <small>YOUR ROUTE</small>
-        <b>Patna → New Delhi</b>
-        <span>Tomorrow · 7:30 AM</span>
-      </div>
-
-      <div className="section-title compact">
-        <small>3 PEOPLE FOUND</small>
-        <h1>Choose who fits</h1>
-      </div>
-
-      {people.map(p =>
-        <button
-          className="match-card"
-          key={p.name}
-          onClick={() => go('person')}
-        >
-          <Avatar name={p.name} size="lg" />
-          <div>
-            <strong>{p.name}, {p.age}</strong>
-            <span>★ {p.rating} · 12 Tags</span>
-            <p>{p.route}</p>
-            <small>{p.time}</small>
+              <div className="mt-20 stack-12">
+                <div>
+                  <p className="t-small">JOURNEY</p>
+                  <p className="t-body-strong">Patna → Danapur</p>
+                </div>
+                <div>
+                  <p className="t-small">DEPARTURE</p>
+                  <p className="t-body-strong">Today · 6:30 PM</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <em>›</em>
-        </button>
-      )}
-    </div>
+
+          <div className="status-card mt-16">
+            <div className="status-row">
+              <Icon name="shield" />
+              <div>
+                <p className="t-body-strong">Protected connection</p>
+                <p className="t-small">Your contact details stay private on Tag.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-20 stack-12">
+            <Button onClick={() => go('active')}>Request a Tag</Button>
+            <Button variant="secondary">View profile</Button>
+          </div>
+        </section>
+      </div>
+    </main>
   )
 }
 
-function Person({ go }) {
+function Active({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Profile" go={go} />
+    <main className="screen">
+      <Header
+        title="Active Tag"
+        right={
+          <button className="icon-btn outline">
+            <Icon name="shield" />
+          </button>
+        }
+      />
 
-      <div className="person-hero">
-        <Avatar name="Aarav Sharma" size="xl" />
-        <div>
-          <h1>Aarav Sharma, 22</h1>
-          <span>★ 4.9 · 18 completed Tags</span>
+      <div className="screen-scroll">
+        <section className="active-top">
+          <div className="row" style={{ gap: 12 }}>
+            <Avatar name="Aarav Sharma" size="lg" />
+            <div>
+              <h2 className="t-heading">You are connected</h2>
+              <p className="t-small">Aarav Sharma · Patna → Danapur</p>
+            </div>
+          </div>
+        </section>
+
+        <div className="status-card">
+          <div className="status-row">
+            <span className="status-dot" />
+            <div>
+              <p className="t-body-strong">Tag is active</p>
+              <p className="t-small">Started 12 minutes ago</p>
+            </div>
+          </div>
         </div>
+
+        <section className="section">
+          <div className="hero-card">
+            <div className="hero-card-media" />
+            <div className="hero-card-body">
+              <p className="t-small">CURRENT JOURNEY</p>
+              <p className="t-heading mt-4">Patna → Danapur</p>
+              <p className="t-body mt-8">
+                Keep your conversation and journey updates inside Tag.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-16">
+            <Button onClick={() => go('chat')}>Open protected chat</Button>
+          </div>
+
+          <div className="mt-12">
+            <Button variant="secondary" onClick={() => go('complete')}>Complete Tag</Button>
+          </div>
+        </section>
       </div>
-
-      <div className="trust">
-        <b>✓</b>
-        <div>
-          <strong>Verified profile</strong>
-          <span>Phone and identity verified</span>
-        </div>
-      </div>
-
-      <div className="about">
-        <small>ABOUT</small>
-        <p>
-          Usually travelling between Patna and Delhi.
-          I prefer a quiet, respectful journey.
-        </p>
-      </div>
-
-      <div className="route-box">
-        <span>ROUTE</span>
-        <b>Patna → New Delhi</b>
-        <small>Tomorrow · 7:30 AM</small>
-      </div>
-
-      <Primary onClick={() => go('request')}>
-        Request a Tag
-      </Primary>
-    </div>
-  )
-}
-
-/* ---------- REQUEST / ACTIVE ---------- */
-
-function Request({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Request Tag" go={go} />
-
-      <div className="request-card">
-        <Avatar name="Aarav Sharma" size="lg" />
-        <div>
-          <strong>Aarav Sharma</strong>
-          <span>★ 4.9 · Verified</span>
-        </div>
-      </div>
-
-      <div className="route-box">
-        <span>YOUR JOURNEY</span>
-        <b>Patna → New Delhi</b>
-        <small>Tomorrow · 7:30 AM</small>
-      </div>
-
-      <div className="note">
-        <small>MESSAGE</small>
-        <textarea placeholder="Say hello and tell them a little about your journey..." />
-      </div>
-
-      <Primary onClick={() => go('request-sent')}>
-        Send request
-      </Primary>
-    </div>
-  )
-}
-
-function RequestSent({ go }) {
-  return (
-    <div className="plain success">
-      <div className="success-icon">✓</div>
-      <Logo />
-      <h1>Request sent</h1>
-      <p>
-        Aarav has been notified. You can keep exploring while you wait.
-      </p>
-      <Primary onClick={() => go('tags')}>View my Tags</Primary>
-      <button className="text-btn" onClick={() => go('home')}>
-        Back home
-      </button>
-    </div>
-  )
-}
-
-function Tags({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="My Tags" go={go} />
-
-      <div className="tabs">
-        <button className="active">Active</button>
-        <button>Upcoming</button>
-        <button>Completed</button>
-      </div>
-
-      <div className="tag-card active-card">
-        <span className="status">REQUESTED</span>
-        <h2>Patna → New Delhi</h2>
-        <p>Tomorrow · 7:30 AM</p>
-        <div>
-          <Avatar name="Aarav Sharma" />
-          <b>Aarav Sharma</b>
-          <em>Pending</em>
-        </div>
-      </div>
-
-      <div className="tag-card">
-        <span className="status soft">UPCOMING</span>
-        <h2>Patna → Lucknow</h2>
-        <p>Fri · 6:00 AM</p>
-        <div>
-          <Avatar name="Riya Verma" />
-          <b>Riya Verma</b>
-          <em>Confirmed</em>
-        </div>
-      </div>
-
-      <BottomNav go={go} active="tags" />
-    </div>
-  )
-}
-
-function ActiveTag({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Active Tag" go={go} />
-
-      <div className="active-route">
-        <span>LIVE JOURNEY</span>
-        <h1>Patna → New Delhi</h1>
-        <p>Today · 7:30 AM</p>
-      </div>
-
-      <div className="travel-status">
-        <i />
-        <div>
-          <strong>You're connected</strong>
-          <span>Aarav is on your Tag</span>
-        </div>
-      </div>
-
-      <div className="action-grid">
-        <button onClick={() => go('chat')}>
-          ◌<b>Chat</b><small>Protected</small>
-        </button>
-
-        <button onClick={() => go('call')}>
-          ◉<b>Call</b><small>In-app</small>
-        </button>
-
-        <button onClick={() => go('complete')}>
-          ✓<b>Complete</b><small>End Tag</small>
-        </button>
-      </div>
-
-      <div className="safety">
-        <b>ⓘ</b>
-        <span>
-          Your contact details stay private while you're on Tag.
-        </span>
-      </div>
-    </div>
+    </main>
   )
 }
 
 function Chat({ go }) {
   return (
-    <div className="plain chat">
-      <Header title="Aarav Sharma" go={go} />
+    <main className="screen">
+      <Header
+        title="Aarav Sharma"
+        back
+        onBack={() => go('active')}
+        right={<button className="icon-btn outline"><Icon name="shield" /></button>}
+      />
 
-      <div className="chat-trust">
-        ✓ Protected conversation
+      <div className="screen-scroll" style={{ paddingBottom: 100 }}>
+        <section className="section">
+          <div className="empty-state" style={{ paddingTop: 30, paddingBottom: 30 }}>
+            <div className="empty-icon">
+              <Icon name="shield" />
+            </div>
+            <p className="t-body">
+              This is a protected Tag conversation.
+              Contact details are hidden unless you choose to share them.
+            </p>
+          </div>
+
+          <div className="stack-12">
+            <div className="card card-pad" style={{ width: '78%', marginLeft: 'auto' }}>
+              <p className="t-body">Hey, are you leaving around 6:30?</p>
+            </div>
+
+            <div className="card card-pad" style={{ width: '78%' }}>
+              <p className="t-body">Yes, I should be there. I'll update you here.</p>
+            </div>
+          </div>
+        </section>
       </div>
 
-      <div className="messages">
-        <div className="bubble them">Hey! Ready for tomorrow?</div>
-        <div className="bubble me">
-          Yes! I'll be at the pickup point by 7:20.
-        </div>
-        <div className="bubble them">Perfect 👍</div>
+      <div style={{
+        position: 'absolute',
+        left: 16,
+        right: 16,
+        bottom: 16,
+        display: 'flex',
+        gap: 8,
+        zIndex: 20,
+      }}>
+        <input className="field" placeholder="Write a message..." />
+        <button className="icon-btn" style={{ background: '#121212', color: '#fff' }}>
+          <Icon name="arrow" />
+        </button>
       </div>
-
-      <div className="chat-input">
-        <button>+</button>
-        <input placeholder="Message..." />
-        <button>➤</button>
-      </div>
-    </div>
-  )
-}
-
-function Call({ go }) {
-  return (
-    <div className="plain call">
-      <Avatar name="Aarav Sharma" size="xl" />
-      <h1>Aarav Sharma</h1>
-      <p>Calling securely through Tag...</p>
-      <div className="call-ring">◉</div>
-      <button className="end-call" onClick={() => go('active')}>×</button>
-    </div>
+    </main>
   )
 }
 
 function Complete({ go }) {
   return (
-    <div className="plain success">
-      <div className="success-icon">✓</div>
-      <h1>Tag completed</h1>
-      <p>How was the journey with Aarav?</p>
-      <div className="stars">☆ ☆ ☆ ☆ ☆</div>
-      <Primary onClick={() => go('review')}>Leave review</Primary>
-    </div>
+    <main className="success-screen">
+      <div className="success-icon">
+        <Icon name="check" size={34} stroke={1.6} />
+      </div>
+
+      <h1 className="t-title">Tag completed</h1>
+      <p className="t-body mt-12">
+        Your journey with Aarav has been completed.
+        You can now leave a review and keep the connection in your history.
+      </p>
+
+      <div style={{ width: '100%' }} className="mt-32 stack-12">
+        <Button onClick={() => go('activity')}>Leave a review</Button>
+        <Button variant="secondary" onClick={() => go('home')}>Back to home</Button>
+      </div>
+    </main>
   )
 }
 
-function Review({ go }) {
+function Tags({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Your review" go={go} />
+    <main className="screen">
+      <Header title="My Tags" />
 
-      <div className="review-person">
-        <Avatar name="Aarav Sharma" size="xl" />
-        <h1>How was your Tag?</h1>
-        <p>Your feedback helps keep the community trusted.</p>
+      <div className="screen-scroll">
+        <section className="section">
+          <div className="tabs">
+            <button className="tab active">Active</button>
+            <button className="tab">Upcoming</button>
+            <button className="tab">Completed</button>
+          </div>
+
+          <div className="stack-12 mt-20">
+            <button className="card card-pad" onClick={() => go('active')}>
+              <div className="row-between">
+                <div className="row" style={{ gap: 12 }}>
+                  <Avatar name="Aarav Sharma" size="sm" />
+                  <div>
+                    <p className="person-name">Aarav Sharma</p>
+                    <p className="person-meta">Patna → Danapur</p>
+                  </div>
+                </div>
+                <span className="badge success">Active</span>
+              </div>
+            </button>
+          </div>
+        </section>
       </div>
 
-      <div className="stars big">☆ ☆ ☆ ☆ ☆</div>
-
-      <div className="note">
-        <small>OPTIONAL NOTE</small>
-        <textarea placeholder="Share something helpful..." />
-      </div>
-
-      <Primary onClick={() => go('review-success')}>
-        Submit review
-      </Primary>
-    </div>
-  )
-}
-
-function ReviewSuccess({ go }) {
-  return (
-    <div className="plain success">
-      <div className="success-icon">✓</div>
-      <Logo />
-      <h1>Thanks for the feedback</h1>
-      <p>Your review has been added to the community trust layer.</p>
-      <Primary onClick={() => go('home')}>Back to home</Primary>
-    </div>
-  )
-}
-
-/* ---------- PRODUCT INFRASTRUCTURE ---------- */
-
-function Notifications({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Notifications" go={go} />
-
-      <div className="notification">
-        <b>New Tag request</b>
-        <span>Aarav Sharma wants to join your Patna → New Delhi journey.</span>
-        <small>2 min ago</small>
-      </div>
-
-      <div className="notification">
-        <b>Your Tag is confirmed</b>
-        <span>Riya accepted your request.</span>
-        <small>Yesterday</small>
-      </div>
-    </div>
+      <BottomNav page="tags" go={go} />
+    </main>
   )
 }
 
 function Activity({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Activity" go={go} />
+    <main className="screen">
+      <Header title="Activity" />
 
-      <div className="empty">
-        <div>◷</div>
-        <h1>Nothing new yet</h1>
-        <p>Your completed journeys and updates will appear here.</p>
-        <Primary onClick={() => go('discover')}>
-          Discover people
-        </Primary>
+      <div className="screen-scroll">
+        <section className="section">
+          <div className="stack-12">
+            {[
+              ['Tag request accepted', 'Aarav Sharma accepted your request.', '2 min ago'],
+              ['Journey completed', 'Your previous Tag was completed.', 'Yesterday'],
+              ['New match', 'You have a new journey match.', '2 days ago'],
+            ].map(([title, body, time]) => (
+              <div className="card card-pad" key={title}>
+                <div className="row-between">
+                  <div>
+                    <p className="t-body-strong">{title}</p>
+                    <p className="t-small mt-4">{body}</p>
+                  </div>
+                  <p className="t-small">{time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
-      <BottomNav go={go} active="activity" />
-    </div>
+      <BottomNav page="activity" go={go} />
+    </main>
   )
 }
 
 function Profile({ go }) {
   return (
-    <div className="plain page">
-      <Header title="Profile" go={go} />
+    <main className="screen">
+      <Header
+        title="Profile"
+        right={
+          <button className="icon-btn outline">
+            <Icon name="edit" />
+          </button>
+        }
+      />
 
-      <div className="profile-head">
-        <Avatar size="xl" />
-        <div>
-          <h1>Mohnish Raj</h1>
-          <span>★ 4.9 · 12 Tags completed</span>
-        </div>
-        <button>✎</button>
-      </div>
-
-      <div className="profile-list">
-        <button onClick={() => go('settings')}>⚙ <span>Settings</span>›</button>
-        <button onClick={() => go('wallet')}>◈ <span>Wallet</span>›</button>
-        <button onClick={() => go('referral')}>♧ <span>Invite friends</span>›</button>
-        <button onClick={() => go('help')}>? <span>Help & Support</span>›</button>
-      </div>
-
-      <BottomNav go={go} active="profile" />
-    </div>
-  )
-}
-
-function Menu({ go }) {
-  const items = [
-    ['⌂', 'Home', 'home'],
-    ['◇', 'My Tags', 'tags'],
-    ['◷', 'Activity', 'activity'],
-    ['♡', 'Favourites', 'favourites'],
-    ['◈', 'Wallet', 'wallet'],
-    ['⚙', 'Settings', 'settings'],
-    ['?', 'Help & Support', 'help'],
-  ]
-
-  return (
-    <div className="plain menu">
-      <Logo />
-
-      <button className="menu-profile" onClick={() => go('profile')}>
-        <Avatar size="lg" />
-        <div>
-          <b>Mohnish Raj</b>
-          <span>View profile</span>
-        </div>
-        ›
-      </button>
-
-      {items.map(x =>
-        <button
-          className="menu-item"
-          key={x[2]}
-          onClick={() => go(x[2])}
-        >
-          <i>{x[0]}</i>
-          <span>{x[1]}</span>
-          ›
-        </button>
-      )}
-
-      <button className="logout" onClick={() => go('welcome')}>
-        ↪ Sign out
-      </button>
-    </div>
-  )
-}
-
-function Favourites({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Favourites" go={go} />
-
-      <div className="section-title">
-        <small>SAVED PEOPLE</small>
-        <h1>Your trusted circle</h1>
-      </div>
-
-      <div className="discover-card">
-        <Avatar name="Aarav Sharma" size="lg" />
-        <div className="dcopy">
-          <strong>Aarav Sharma</strong>
-          <span>★ 4.9 · Verified</span>
-          <p>18 completed Tags</p>
-        </div>
-        <em>♡</em>
-      </div>
-
-      <div className="empty small-empty">
-        <div>♡</div>
-        <h2>No more favourites</h2>
-        <p>Save people you trust after a completed Tag.</p>
-      </div>
-    </div>
-  )
-}
-
-function Wallet({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Wallet" go={go} />
-
-      <div className="wallet">
-        <small>TAG BALANCE</small>
-        <strong>₹ 240.00</strong>
-        <span>Available for future Tag services</span>
-      </div>
-
-      <button className="wallet-action" onClick={() => go('add-money')}>
-        + Add money
-      </button>
-
-      <div className="section-title compact">
-        <small>RECENT</small>
-        <h2>Transactions</h2>
-      </div>
-
-      {[
-        'Tag service · − ₹60',
-        'Added money · + ₹300',
-        'Tag service · − ₹0',
-      ].map(x =>
-        <div className="transaction" key={x}>
-          {x}<span>Today</span>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function AddMoney({ go }) {
-  return (
-    <div className="plain page">
-      <Header title="Add money" go={go} />
-
-      <div className="amount-grid">
-        {['₹100', '₹250', '₹500', '₹1,000'].map(x =>
-          <button key={x}>{x}</button>
-        )}
-      </div>
-
-      <Field label="Custom amount" placeholder="₹ Enter amount" />
-
-      <Primary onClick={() => go('payment-success')}>
-        Continue
-      </Primary>
-    </div>
-  )
-}
-
-function PaymentSuccess({ go }) {
-  return (
-    <div className="plain success">
-      <div className="success-icon">✓</div>
-      <h1>Money added</h1>
-      <p>₹250 has been added to your Tag wallet.</p>
-      <Primary onClick={() => go('wallet')}>Done</Primary>
-    </div>
-  )
-}
-
-/* ---------- ACCOUNT ---------- */
-
-function Settings({ go }) {
-  const rows = [
-    ['Account', 'Edit profile', 'profile'],
-    ['Security', 'Password & verification', 'password'],
-    ['Preferences', 'Language', 'language'],
-    ['Privacy', 'Privacy policy', 'privacy'],
-    ['Support', 'Contact us', 'contact'],
-  ]
-
-  return (
-    <div className="plain page">
-      <Header title="Settings" go={go} />
-
-      {rows.map(x =>
-        <button
-          className="settings-row"
-          key={x[1]}
-          onClick={() => go(x[2])}
-        >
-          <span>
-            <small>{x[0]}</small>
-            <b>{x[1]}</b>
-          </span>
-          ›
-        </button>
-      )}
-
-      <button className="danger" onClick={() => go('delete')}>
-        Delete account
-      </button>
-    </div>
-  )
-}
-
-function Simple({ go, type }) {
-  const map = {
-    password: ['Change password', 'Keep your account secure with a strong password.'],
-    language: ['Language', 'English'],
-    privacy: ['Privacy policy', 'Your profile and journey information are designed to stay within the Tag experience.'],
-    contact: ['Contact us', 'Need help? Reach out to the Tag support team.'],
-    help: ['Help & Support', 'Find answers about Tags, privacy, safety and your account.'],
-    referral: ['Invite friends', 'Bring trusted people into your Tag circle.'],
-    about: ['About Tag', 'Tag helps people discover compatible journeys and build trusted connections without making contact exchange the goal.'],
-    delete: ['Delete account', 'Deleting your account removes your profile and active Tag history. This action cannot be undone.'],
-  }
-
-  const [title, body] = map[type]
-
-  return (
-    <div className="plain page">
-      <Header title={title} go={go} />
-
-      <div className="simple-content">
-        <div className="simple-icon">
-          {type === 'delete' ? '!' : '•'}
-        </div>
-
-        <h1>{title}</h1>
-        <p>{body}</p>
-
-        {type === 'password' && <>
-          <Field label="Current password" placeholder="Current password" type="password" />
-          <Field label="New password" placeholder="New password" type="password" />
-        </>}
-
-        {type === 'language' &&
-          <div className="language-option">
-            <b>English</b>
-            <span>✓</span>
+      <div className="screen-scroll">
+        <section className="profile-head">
+          <Avatar name="Mohnish Raj" size="lg" />
+          <div>
+            <h2 className="profile-name">Mohnish Raj</h2>
+            <p className="profile-bio">Patna · Member since 2026</p>
           </div>
-        }
+        </section>
 
-        {type === 'delete'
-          ? <button className="danger filled" onClick={() => go('welcome')}>
-              Delete my account
-            </button>
-          : <Primary onClick={() => go(type === 'help' ? 'home' : 'settings')}>
-              {type === 'contact' ? 'Send message' : 'Done'}
-            </Primary>
-        }
+        <section className="section compact">
+          <div className="card card-pad">
+            <div className="row-between">
+              <div>
+                <p className="t-small">TRUST</p>
+                <p className="t-heading mt-4">New member</p>
+              </div>
+              <Icon name="shield" />
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="stack-8">
+            {[
+              ['My history', 'Review previous Tags', 'clock', 'activity'],
+              ['Favourite people', 'People you want to reconnect with', 'heart', 'discover'],
+              ['Safety & privacy', 'Manage your protected experience', 'shield', 'profile'],
+            ].map(([title, body, icon, route]) => (
+              <button className="card person-card" key={title} onClick={() => go(route)}>
+                <div className="avatar sm"><Icon name={icon} size={18} /></div>
+                <div className="person-info">
+                  <p className="person-name">{title}</p>
+                  <p className="person-meta">{body}</p>
+                </div>
+                <Icon name="arrow" size={18} />
+              </button>
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
+
+      <BottomNav page="profile" go={go} />
+    </main>
   )
 }
-
-/* ---------- APP ROUTER ---------- */
 
 function App() {
-  const [screen, setScreen] = useState('onboarding-0')
-  const [history, setHistory] = useState([])
+  const [page, setPage] = useState('intro')
 
-  const go = next => {
-    if (typeof next === 'number') {
-      setScreen(history[history.length - 1] || 'home')
-      setHistory(h => h.slice(0, -1))
-      return
-    }
+  const go = next => setPage(next)
 
-    setHistory(h => [...h, screen])
-    setScreen(next)
-  }
+  let screen
 
-  if (screen.startsWith('onboarding-')) {
-    return (
-      <div className="viewport">
-        <Onboarding n={Number(screen.split('-')[1])} go={go} />
-      </div>
-    )
-  }
-
-  if (
-    [
-      'welcome',
-      'signup',
-      'signin',
-      'otp',
-      'forgot',
-      'phone-otp',
-      'new-password',
-      'profile',
-    ].includes(screen)
-  ) {
-    return (
-      <div className="viewport">
-        <Auth mode={screen} go={go} />
-      </div>
-    )
-  }
-
-  const screens = {
-    home: <Home go={go} />,
-    discover: <Discover go={go} />,
-    location: <Location go={go} />,
-    confirm: <Confirm go={go} />,
-    create: <CreateTag go={go} />,
-    'tag-details': <TagDetails go={go} />,
-    matching: <Matching go={go} />,
-    person: <Person go={go} />,
-    request: <Request go={go} />,
-    'request-sent': <RequestSent go={go} />,
-    tags: <Tags go={go} />,
-    active: <ActiveTag go={go} />,
-    chat: <Chat go={go} />,
-    call: <Call go={go} />,
-    complete: <Complete go={go} />,
-    review: <Review go={go} />,
-    'review-success': <ReviewSuccess go={go} />,
-    notifications: <Notifications go={go} />,
-    activity: <Activity go={go} />,
-    profile: <Profile go={go} />,
-    menu: <Menu go={go} />,
-    favourites: <Favourites go={go} />,
-    wallet: <Wallet go={go} />,
-    'add-money': <AddMoney go={go} />,
-    'payment-success': <PaymentSuccess go={go} />,
-    settings: <Settings go={go} />,
-    password: <Simple go={go} type="password" />,
-    language: <Simple go={go} type="language" />,
-    privacy: <Simple go={go} type="privacy" />,
-    contact: <Simple go={go} type="contact" />,
-    help: <Simple go={go} type="help" />,
-    referral: <Simple go={go} type="referral" />,
-    about: <Simple go={go} type="about" />,
-    delete: <Simple go={go} type="delete" />,
+  switch (page) {
+    case 'intro':
+      screen = <Intro go={go} />
+      break
+    case 'welcome':
+      screen = <Welcome go={go} />
+      break
+    case 'signup':
+      screen = <Auth mode="signup" go={go} />
+      break
+    case 'signin':
+      screen = <Auth mode="signin" go={go} />
+      break
+    case 'profile-setup':
+      screen = <ProfileSetup go={go} />
+      break
+    case 'home':
+      screen = <Home go={go} />
+      break
+    case 'discover':
+      screen = <Discover go={go} />
+      break
+    case 'location':
+      screen = <Location go={go} />
+      break
+    case 'match':
+      screen = <Match go={go} />
+      break
+    case 'active':
+      screen = <Active go={go} />
+      break
+    case 'chat':
+      screen = <Chat go={go} />
+      break
+    case 'complete':
+      screen = <Complete go={go} />
+      break
+    case 'tags':
+      screen = <Tags go={go} />
+      break
+    case 'activity':
+      screen = <Activity go={go} />
+      break
+    case 'profile':
+      screen = <Profile go={go} />
+      break
+    default:
+      screen = <Intro go={go} />
   }
 
   return (
-    <div className="viewport">
-      {screens[screen] || <Home go={go} />}
+    <div className="app-shell">
+      <div className="app-frame">
+        {screen}
+      </div>
     </div>
   )
 }
