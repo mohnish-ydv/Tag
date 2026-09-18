@@ -16,7 +16,7 @@ export default defineConfig({
         background_color: '#FFFFFF',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/Tag/',
         icons: []
       }
     })
