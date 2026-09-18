@@ -121,16 +121,14 @@ function Intro({ go }) {
           connect safely, and keep the experience on Tag.
         </p>
 
-        <div className="dots">
+        <div className="dots" aria-label="Introduction">
           <span className="dot active" />
-          <span className="dot" />
-          <span className="dot" />
         </div>
       </div>
 
       <div className="auth-actions stack-12">
-        <Button onClick={() => go('welcome')}>Get Started</Button>
-        <Button variant="secondary" onClick={() => go('welcome')}>I already have an account</Button>
+        <Button onClick={() => go('signup')}>Get Started</Button>
+        <Button variant="secondary" onClick={() => go('signin')}>I already have an account</Button>
       </div>
     </main>
   )
@@ -163,18 +161,38 @@ function Welcome({ go }) {
 function Auth({ mode, go }) {
   const signup = mode === 'signup'
 
+  const [name, setName] = useState('')
+  const [mobile, setMobile] = useState('')
+  const [password, setPassword] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const mobileOk = /^\+?91?\s?\d{10}$/.test(
+    mobile.replace(/\s/g, '')
+  )
+  const passwordOk = password.length >= 6
+  const nameOk = name.trim().length >= 2
+
+  const valid =
+    mobileOk &&
+    passwordOk &&
+    (!signup || nameOk)
+
   return (
     <main className="screen">
       <Header
         back
-        onBack={() => go('welcome')}
+        onBack={() => go('intro')}
         title={signup ? 'Create account' : 'Sign in'}
       />
 
       <section className="section">
         <div className="stack-24">
+
           <div>
-            <h2 className="t-title">{signup ? 'Create your Tag account' : 'Welcome back'}</h2>
+            <h2 className="t-title">
+              {signup ? 'Create your Tag account' : 'Welcome back'}
+            </h2>
+
             <p className="t-body mt-8">
               {signup
                 ? 'A few details and you are ready to start.'
@@ -183,32 +201,88 @@ function Auth({ mode, go }) {
           </div>
 
           {signup && (
-            <div className="row" style={{ gap: 12 }}>
-              <Avatar name="You" size="lg" />
-              <button className="btn btn-secondary btn-sm">Add photo</button>
-            </div>
-          )}
-
-          {signup && (
             <div className="field-group">
               <p className="t-label">Full name</p>
-              <input className="field" placeholder="Enter your name" />
+
+              <input
+                className={
+                  submitted && !nameOk
+                    ? 'field field-error'
+                    : 'field'
+                }
+                value={name}
+                onChange={e => setName(e.target.value)}
+                onBlur={() => setSubmitted(true)}
+                placeholder="Enter your name"
+              />
+
+              {submitted && !nameOk && (
+                <small className="field-error-text">
+                  Enter your full name
+                </small>
+              )}
             </div>
           )}
 
           <div className="field-group">
             <p className="t-label">Mobile number</p>
-            <input className="field" inputMode="tel" placeholder="+91 00000 00000" />
+
+            <input
+              className={
+                submitted && !mobileOk
+                  ? 'field field-error'
+                  : 'field'
+              }
+              inputMode="tel"
+              value={mobile}
+              onChange={e => setMobile(e.target.value)}
+              onBlur={() => setSubmitted(true)}
+              placeholder="+91 00000 00000"
+            />
+
+            {submitted && !mobileOk && (
+              <small className="field-error-text">
+                Enter a valid 10-digit mobile number
+              </small>
+            )}
           </div>
 
           <div className="field-group">
             <p className="t-label">Password</p>
-            <input className="field" type="password" placeholder="Enter password" />
+
+            <input
+              className={
+                submitted && !passwordOk
+                  ? 'field field-error'
+                  : 'field'
+              }
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              onBlur={() => setSubmitted(true)}
+              placeholder="Enter password"
+            />
+
+            {submitted && !passwordOk && (
+              <small className="field-error-text">
+                Password must be at least 6 characters
+              </small>
+            )}
           </div>
+
         </div>
 
         <div className="mt-32 stack-12">
-          <Button onClick={() => go(signup ? 'profile-setup' : 'home')}>
+
+          <Button
+            onClick={() => {
+              setSubmitted(true)
+
+              if (valid) {
+                go(signup ? 'profile-setup' : 'home')
+              }
+            }}
+          >
             {signup ? 'Continue' : 'Sign in'}
           </Button>
 
@@ -229,6 +303,7 @@ function Auth({ mode, go }) {
               </button>
             </>
           )}
+
         </div>
       </section>
     </main>
@@ -236,36 +311,96 @@ function Auth({ mode, go }) {
 }
 
 function ProfileSetup({ go }) {
+  const [about, setAbout] = useState('')
+  const [journey, setJourney] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  const valid =
+    about.trim().length >= 3 &&
+    journey.trim().length >= 3
+
   return (
     <main className="screen">
       <Header title="Complete your profile" />
 
       <section className="section">
         <div className="stack-24">
+
           <div>
-            <h2 className="t-title">Tell people a little about you</h2>
+            <h2 className="t-title">
+              Tell people a little about you
+            </h2>
+
             <p className="t-body mt-8">
               Only share what you are comfortable sharing.
             </p>
           </div>
 
-          <div className="row" style={{ justifyContent: 'center' }}>
+          <div
+            className="row"
+            style={{ justifyContent: 'center' }}
+          >
             <Avatar name="Mohnish Raj" size="lg" />
           </div>
 
           <div className="field-group">
             <p className="t-label">About you</p>
-            <textarea className="field" placeholder="What should people know?" />
+
+            <textarea
+              className={
+                submitted && about.trim().length < 3
+                  ? 'field field-error'
+                  : 'field'
+              }
+              value={about}
+              onChange={e => setAbout(e.target.value)}
+              onBlur={() => setSubmitted(true)}
+              placeholder="What should people know?"
+            />
+
+            {submitted && about.trim().length < 3 && (
+              <small className="field-error-text">
+                Tell people a little about you
+              </small>
+            )}
           </div>
 
           <div className="field-group">
             <p className="t-label">Your usual journey</p>
-            <input className="field" placeholder="e.g. Patna → Bihta" />
+
+            <input
+              className={
+                submitted && journey.trim().length < 3
+                  ? 'field field-error'
+                  : 'field'
+              }
+              value={journey}
+              onChange={e => setJourney(e.target.value)}
+              onBlur={() => setSubmitted(true)}
+              placeholder="e.g. Patna → Bihta"
+            />
+
+            {submitted && journey.trim().length < 3 && (
+              <small className="field-error-text">
+                Enter your usual journey
+              </small>
+            )}
           </div>
+
         </div>
 
         <div className="mt-32">
-          <Button onClick={() => go('home')}>Finish profile</Button>
+          <Button
+            onClick={() => {
+              setSubmitted(true)
+
+              if (valid) {
+                go('home')
+              }
+            }}
+          >
+            Finish profile
+          </Button>
         </div>
       </section>
     </main>
@@ -1008,7 +1143,7 @@ function PostRideFlow({ go }) {
   const [rating, setRating] = React.useState(0)
   const [reviewed, setReviewed] = React.useState(false)
 
-  const next = () => setStep(v => Math.min(v + 1, 7))
+  const next = () => setStep(v => Math.min(v + 1, 6))
   const back = () => {
     if (step === 0) {
       go('ride')
@@ -1126,40 +1261,6 @@ function PostRideFlow({ go }) {
 
   if (step === 2) {
     return (
-      <main className="post-ride-screen post-call-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>COMMUNICATION</small>
-            <strong>Calling</strong>
-          </div>
-          <span>31</span>
-        </header>
-
-        <section className="call-stage">
-          <div className="call-avatar">
-            <Avatar name="Aarav Sharma" size="lg" />
-          </div>
-          <small>CALLING</small>
-          <h1>Aarav Sharma</h1>
-          <p>Protected Tag call</p>
-
-          <div className="call-controls">
-            <button>⌕</button>
-            <button className="call-main" onClick={next}>☎</button>
-            <button>⌁</button>
-          </div>
-
-          <button className="post-secondary" onClick={next}>
-            Continue to conversation
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 3) {
-    return (
       <main className="post-ride-screen">
         <header className="post-flow-header">
           <button onClick={back}>‹</button>
@@ -1194,7 +1295,7 @@ function PostRideFlow({ go }) {
     )
   }
 
-  if (step === 4) {
+  if (step === 2) {
     return (
       <main className="post-ride-screen">
         <header className="post-flow-header">
@@ -1246,7 +1347,7 @@ function PostRideFlow({ go }) {
     )
   }
 
-  if (step === 5) {
+  if (step === 2) {
     return (
       <main className="post-ride-screen">
         <header className="post-flow-header">
@@ -1303,7 +1404,7 @@ function PostRideFlow({ go }) {
     )
   }
 
-  if (step === 6) {
+  if (step === 2) {
     return (
       <main className="post-ride-screen">
         <header className="post-flow-header">
@@ -1564,6 +1665,67 @@ function Tags({ go }) {
   )
 }
 
+function Match({ go }) {
+  return (
+    <main className="screen">
+
+      <Header
+        title="Journey match"
+        back
+        onBack={() => go('home')}
+      />
+
+      <section className="section">
+
+        <div className="match-hero">
+          <Avatar name="Aarav Sharma" size="lg" />
+
+          <div>
+            <p className="t-small">92% ROUTE MATCH</p>
+            <h1>Aarav Sharma</h1>
+            <p>Patna → Danapur</p>
+          </div>
+        </div>
+
+        <div className="match-card mt-24">
+
+          <div className="match-row">
+            <span>Journey</span>
+            <strong>Patna → Danapur</strong>
+          </div>
+
+          <div className="match-row">
+            <span>Shared route</span>
+            <strong>Most of the way</strong>
+          </div>
+
+          <div className="match-row">
+            <span>Trust</span>
+            <strong>Verified Tag member</strong>
+          </div>
+
+        </div>
+
+        <div className="stack-12 mt-24">
+
+          <Button onClick={() => go('chat')}>
+            Message Aarav
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => go('home')}
+          >
+            Back to home
+          </Button>
+
+        </div>
+
+      </section>
+    </main>
+  )
+}
+
 function Activity({ go }) {
   return (
     <main className="screen">
@@ -1599,111 +1761,165 @@ function Activity({ go }) {
 function Profile({ go }) {
   return (
     <main className="screen">
+
       <Header
         title="Profile"
-        right={
-          <div className="profile-header-actions">
-            <button
-              className="icon-btn outline"
-              onClick={() => go('menu')}
-              aria-label="Open menu"
-            >
-              <Icon name="menu" size={20} />
-            </button>
-          </div>
-        }
+        back
+        onBack={() => go('home')}
       />
 
-      <div className="screen-scroll">
+      <div className="screen-scroll profile-hub">
+
         <section className="profile-head">
           <Avatar name="Mohnish Raj" size="lg" />
+
           <div>
-            <h2 className="profile-name">Mohnish Raj</h2>
-            <p className="profile-bio">Patna · Member since 2026</p>
+            <h2 className="profile-name">
+              Mohnish Raj
+            </h2>
+
+            <p className="profile-bio">
+              Patna · Member since 2026
+            </p>
           </div>
         </section>
 
         <section className="section compact">
-          <div className="card card-pad">
-            <div className="row-between">
-              <div>
-                <p className="t-small">TRUST</p>
-                <p className="t-heading mt-4">New member</p>
-              </div>
-              <Icon name="shield" />
+          <div className="profile-trust-card">
+            <div>
+              <p className="t-small">TRUST</p>
+              <p className="t-heading mt-4">
+                New member
+              </p>
             </div>
+
+            <Icon name="shield" />
           </div>
         </section>
 
-        <section className="section">
+        <section className="section profile-group">
+          <p className="profile-group-title">
+            ACCOUNT
+          </p>
+
           <div className="stack-8">
-            <button className="card person-card" onClick={() => go('favourite')}>
-              <div className="avatar sm"><Icon name="heart" size={18} /></div>
-              <div className="person-info">
-                <p className="person-name">Favourite</p>
-                <p className="person-meta">People you want to reconnect with</p>
-              </div>
-              <Icon name="arrow" size={18} />
-            </button>
+            <AccountRow
+              icon="user"
+              title="Edit profile"
+              subtitle="Update your personal details"
+              onClick={() => go('profile-setup')}
+            />
 
-            <button className="card person-card" onClick={() => go('wallet')}>
-              <div className="avatar sm"><Icon name="wallet" size={18} /></div>
-              <div className="person-info">
-                <p className="person-name">Wallet</p>
-                <p className="person-meta">Manage your Tag balance</p>
-              </div>
-              <Icon name="arrow" size={18} />
-            </button>
-
-            <button className="card person-card" onClick={() => go('offer')}>
-              <div className="avatar sm"><Icon name="tag" size={18} /></div>
-              <div className="person-info">
-                <p className="person-name">Offers</p>
-                <p className="person-meta">View rewards available to you</p>
-              </div>
-              <Icon name="arrow" size={18} />
-            </button>
-
-            <button className="card person-card" onClick={() => go('history-upcoming')}>
-              <div className="avatar sm"><Icon name="clock" size={18} /></div>
-              <div className="person-info">
-                <p className="person-name">My history</p>
-                <p className="person-meta">Upcoming and previous Tags</p>
-              </div>
-              <Icon name="arrow" size={18} />
-            </button>
+            <AccountRow
+              icon="shield"
+              title="Password"
+              subtitle="Change your password"
+              onClick={() => go('password')}
+            />
           </div>
         </section>
 
-        <section className="section">
-          <button className="profile-menu-button" onClick={() => go('menu')}>
-            <Icon name="menu" size={18} />
-            <span>Open account menu</span>
-            <Icon name="arrow" size={17} />
-          </button>
+        <section className="section profile-group">
+          <p className="profile-group-title">
+            JOURNEYS
+          </p>
+
+          <div className="stack-8">
+            <AccountRow
+              icon="heart"
+              title="Favourite"
+              subtitle="People you want to reconnect with"
+              onClick={() => go('favourite')}
+            />
+
+            <AccountRow
+              icon="clock"
+              title="History"
+              subtitle="Upcoming, completed and cancelled Tags"
+              onClick={() => go('history-upcoming')}
+            />
+          </div>
         </section>
+
+        <section className="section profile-group">
+          <p className="profile-group-title">
+            MONEY & REWARDS
+          </p>
+
+          <div className="stack-8">
+            <AccountRow
+              icon="wallet"
+              title="Wallet"
+              subtitle="Manage your Tag balance"
+              onClick={() => go('wallet')}
+            />
+
+            <AccountRow
+              icon="tag"
+              title="Offers"
+              subtitle="View available rewards"
+              onClick={() => go('offer')}
+            />
+          </div>
+        </section>
+
+        <section className="section profile-group">
+          <p className="profile-group-title">
+            PREFERENCES
+          </p>
+
+          <div className="stack-8">
+            <AccountRow
+              icon="more"
+              title="Language"
+              subtitle="Choose your preferred language"
+              onClick={() => go('language')}
+            />
+
+            <AccountRow
+              icon="shield"
+              title="Privacy"
+              subtitle="Read Tag privacy policy"
+              onClick={() => go('privacy')}
+            />
+          </div>
+        </section>
+
+        <section className="section profile-group">
+          <p className="profile-group-title">
+            HELP
+          </p>
+
+          <div className="stack-8">
+            <AccountRow
+              icon="chat"
+              title="Help & Support"
+              subtitle="Find answers or contact support"
+              onClick={() => go('help')}
+            />
+
+            <AccountRow
+              icon="chat"
+              title="Contact Tag"
+              subtitle="Get in touch with the team"
+              onClick={() => go('contact')}
+            />
+          </div>
+        </section>
+
+        <section className="section profile-group profile-danger">
+          <AccountRow
+            icon="close"
+            title="Delete account"
+            subtitle="Permanently remove your Tag account"
+            onClick={() => go('delete-account')}
+          />
+        </section>
+
       </div>
-
-      <section className="section batch7-profile-links">
-        <div className="stack-8">
-          <button className="profile-menu-button" onClick={() => go('settings')}>
-            <Icon name="shield" size={18} />
-            <span>Settings</span>
-            <Icon name="arrow" size={17} />
-          </button>
-          <button className="profile-menu-button" onClick={() => go('help')}>
-            <Icon name="chat" size={18} />
-            <span>Help & Support</span>
-            <Icon name="arrow" size={17} />
-          </button>
-        </div>
-      </section>
-
-      <BottomNav page="profile" go={go} />
     </main>
   )
 }
-
 
 function AccountRow({ icon, title, subtitle, onClick }) {
   return (
@@ -1722,58 +1938,28 @@ function AccountRow({ icon, title, subtitle, onClick }) {
 
 function Menu({ go }) {
   return (
-    <main className="screen account-screen">
-      <Header title="Menu" back onBack={() => go('profile')} />
+    <main className="screen">
+      <Header
+        title="Profile"
+        back
+        onBack={() => go('home')}
+      />
 
-      <div className="screen-scroll">
-        <section className="section">
-          <div className="account-user-card">
-            <Avatar name="Mohnish Raj" size="lg" />
-            <div>
-              <strong>Mohnish Raj</strong>
-              <small>Patna · Member since 2026</small>
-            </div>
-          </div>
-        </section>
+      <section className="section">
+        <p className="t-body">
+          Your account options are now available directly from Profile.
+        </p>
 
-        <section className="section">
-          <div className="stack-8">
-            <AccountRow
-              icon="heart"
-              title="Favourite"
-              subtitle="People you want to reconnect with"
-              onClick={() => go('favourite')}
-            />
-            <AccountRow
-              icon="wallet"
-              title="Wallet"
-              subtitle="Manage your Tag balance"
-              onClick={() => go('wallet')}
-            />
-            <AccountRow
-              icon="tag"
-              title="Offers"
-              subtitle="View available rewards"
-              onClick={() => go('offer')}
-            />
-            <AccountRow
-              icon="clock"
-              title="History"
-              subtitle="Upcoming, completed and cancelled"
-              onClick={() => go('history-upcoming')}
-            />
-            <AccountRow
-              icon="shield"
-              title="Safety & privacy"
-              subtitle="Manage your account preferences"
-              onClick={() => go('profile')}
-            />
-          </div>
-        </section>
-      </div>
+        <div className="mt-24">
+          <Button onClick={() => go('profile')}>
+            Open Profile
+          </Button>
+        </div>
+      </section>
     </main>
   )
 }
+
 
 function Favourite({ go }) {
   const [favourites, setFavourites] = useState([
@@ -2785,67 +2971,82 @@ class AppErrorBoundary extends React.Component {
 
 /* ---------- BATCH 8: REFERENCE FLOWS ---------- */
 
-function Address({ go }) {
-  const [query, setQuery] = useState('')
 
+function TagMap() {
   return (
-    <div className="plain page reference-page">
-      <Header title="Address" go={go} />
+    <div className="map">
+      <div className="map-grid" />
+      <div className="road r1" />
+      <div className="road r2" />
+      <div className="road r3" />
+      <div className="road r4" />
+      <div className="road r5" />
+      <div className="road r6" />
+    </div>
+  )
+}
 
-      <div className="reference-search">
-        <span>⌕</span>
-        <input
-          autoFocus
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          placeholder="Search address"
-        />
-        {query && (
-          <button onClick={() => setQuery('')}>×</button>
-        )}
-      </div>
+function Primary({ children, onClick }) {
+  return (
+    <button className="primary" onClick={onClick}>
+      {children}
+    </button>
+  )
+}
 
-      <div className="reference-map">
-        <Map />
-        <div className="reference-map-pin">●</div>
-      </div>
+function Address({ go }) {
+  return (
+    <div className="plain page reference-page address-flow">
 
-      <div className="address-sheet">
-        <div className="handle" />
+      <Header
+        title="Your route"
+        back
+        onBack={() => go('search')}
+      />
 
-        <div className="address-current">
-          <span>⌖</span>
+      <div className="address-route-card">
+
+        <div className="route-field-static">
+          <span className="route-bullet from" />
+
           <div>
-            <small>SELECTED LOCATION</small>
+            <small>FROM</small>
             <strong>Patna Junction</strong>
-            <p>Fraser Road, Patna, Bihar</p>
+            <p>Fraser Road, Patna</p>
           </div>
         </div>
 
-        <button
-          className="address-result"
-          onClick={() => go('confirm-address')}
-        >
-          <span>⌖</span>
-          <div>
-            <b>Patna Junction</b>
-            <small>Fraser Road, Patna</small>
-          </div>
-          <em>›</em>
-        </button>
+        <div className="route-connector" />
 
-        <button
-          className="address-result"
-          onClick={() => go('confirm-address')}
-        >
-          <span>⌂</span>
+        <div className="route-field-static">
+          <span className="route-bullet to" />
+
           <div>
-            <b>Home</b>
-            <small>Patna, Bihar</small>
+            <small>TO</small>
+            <strong>Home</strong>
+            <p>Patna, Bihar</p>
           </div>
-          <em>›</em>
-        </button>
+        </div>
+
       </div>
+
+      <div className="reference-map address-flow-map">
+        <TagMap />
+        <div className="reference-map-pin">●</div>
+      </div>
+
+      <div className="address-next-wrap">
+
+        <p className="address-helper">
+          Check both points before continuing.
+        </p>
+
+        <Button onClick={() => go('confirm-address')}>
+          Next
+        </Button>
+
+      </div>
+
     </div>
   )
 }
@@ -2853,29 +3054,42 @@ function Address({ go }) {
 function ConfirmAddress({ go }) {
   return (
     <div className="screen reference-confirm">
-      <Map />
+
+      <TagMap />
 
       <div className="confirm-address-card">
-        <Header title="Confirm location" go={go} />
+
+        <Header
+          title="Confirm location"
+          back
+          onBack={() => go('address')}
+        />
 
         <div className="confirmed-address">
           <span>⌖</span>
+
           <div>
-            <small>ADDRESS</small>
-            <h2>Patna Junction</h2>
-            <p>Fraser Road, Patna, Bihar</p>
+            <small>YOUR ROUTE</small>
+            <h2>Patna Junction → Home</h2>
+            <p>
+              Fraser Road, Patna → Patna, Bihar
+            </p>
           </div>
         </div>
 
         <div className="address-note">
-          <b>Is this location correct?</b>
-          <span>You can change it before continuing.</span>
+          <b>Ready to continue?</b>
+          <span>
+            Review your route once before confirming.
+          </span>
         </div>
 
         <Primary onClick={() => go('ride')}>
           Confirm location
         </Primary>
+
       </div>
+
     </div>
   )
 }
@@ -3145,11 +3359,20 @@ function Notifications({ go }) {
 }
 
 function ForgotPassword({ go }) {
+  const [mobile, setMobile] = useState('')
+  const [touched, setTouched] = useState(false)
+
+  const valid = /^\+?91?\s?\d{10}$/.test(
+    mobile.replace(/\s/g, '')
+  )
+
   return (
     <main className="plain auth reference-forgot">
+
       <Header
         title="Forgot password"
-        go={go}
+        back
+        onBack={() => go('signin')}
       />
 
       <div className="reference-auth-hero">
@@ -3165,24 +3388,49 @@ function ForgotPassword({ go }) {
         </p>
       </div>
 
-      <Field
-        label="Mobile number"
-        placeholder="+91 98765 43210"
-      />
+      <div className="field-group">
+        <p className="t-label">Mobile number</p>
 
-      <Primary onClick={() => go('phone-otp')}>
+        <input
+          className={
+            touched && !valid
+              ? 'field field-error'
+              : 'field'
+          }
+          inputMode="tel"
+          value={mobile}
+          onChange={e => setMobile(e.target.value)}
+          onBlur={() => setTouched(true)}
+          placeholder="+91 98765 43210"
+        />
+
+        {touched && !valid && (
+          <small className="field-error-text">
+            Enter a valid 10-digit mobile number
+          </small>
+        )}
+      </div>
+
+      <Primary
+        disabled={!valid}
+        onClick={() => valid && go('phone-otp')}
+      >
         Send verification code
       </Primary>
+
     </main>
   )
 }
 
-
 function PhoneOtp({ go }) {
-  const [otp, setOtp] = React.useState('')
+  const [otp, setOtp] = useState('')
+  const [touched, setTouched] = useState(false)
+
+  const valid = /^\d{6}$/.test(otp)
 
   return (
     <main className="plain auth reference-forgot">
+
       <Header
         back
         onBack={() => go('forgot-password')}
@@ -3201,17 +3449,39 @@ function PhoneOtp({ go }) {
         </p>
       </div>
 
-      <Field
-        label="Verification code"
-        placeholder="000000"
-      />
+      <div className="field-group">
+        <p className="t-label">Verification code</p>
+
+        <input
+          className={
+            touched && !valid
+              ? 'field field-error'
+              : 'field'
+          }
+          inputMode="numeric"
+          value={otp}
+          maxLength={6}
+          onChange={e =>
+            setOtp(
+              e.target.value
+                .replace(/\D/g, '')
+                .slice(0, 6)
+            )
+          }
+          onBlur={() => setTouched(true)}
+          placeholder="000000"
+        />
+
+        {touched && !valid && (
+          <small className="field-error-text">
+            Enter the 6-digit verification code
+          </small>
+        )}
+      </div>
 
       <Primary
-        onClick={() => {
-          if (otp.length === 6 || otp.length === 0) {
-            go('reset-password')
-          }
-        }}
+        disabled={!valid}
+        onClick={() => valid && go('reset-password')}
       >
         Verify code
       </Primary>
@@ -3222,16 +3492,23 @@ function PhoneOtp({ go }) {
       >
         Resend verification code
       </button>
+
     </main>
   )
 }
 
 function ResetPassword({ go }) {
-  const [password, setPassword] = React.useState('')
-  const [confirm, setConfirm] = React.useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [touched, setTouched] = useState(false)
+
+  const valid =
+    password.length >= 6 &&
+    confirm === password
 
   return (
     <main className="plain auth reference-forgot">
+
       <Header
         back
         onBack={() => go('phone-otp')}
@@ -3250,19 +3527,59 @@ function ResetPassword({ go }) {
         </p>
       </div>
 
-      <Field
-        label="New password"
-        placeholder="Enter new password"
-      />
+      <div className="field-group">
+        <p className="t-label">New password</p>
 
-      <Field
-        label="Confirm password"
-        placeholder="Re-enter password"
-      />
+        <input
+          className={
+            touched && password.length < 6
+              ? 'field field-error'
+              : 'field'
+          }
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          onBlur={() => setTouched(true)}
+          placeholder="Enter new password"
+        />
 
-      <Primary onClick={() => go('signin')}>
+        {touched && password.length < 6 && (
+          <small className="field-error-text">
+            Password must be at least 6 characters
+          </small>
+        )}
+      </div>
+
+      <div className="field-group">
+        <p className="t-label">Confirm password</p>
+
+        <input
+          className={
+            touched && confirm !== password
+              ? 'field field-error'
+              : 'field'
+          }
+          type="password"
+          value={confirm}
+          onChange={e => setConfirm(e.target.value)}
+          onBlur={() => setTouched(true)}
+          placeholder="Re-enter password"
+        />
+
+        {touched && confirm !== password && (
+          <small className="field-error-text">
+            Passwords do not match
+          </small>
+        )}
+      </div>
+
+      <Primary
+        disabled={!valid}
+        onClick={() => valid && go('signin')}
+      >
         Update password
       </Primary>
+
     </main>
   )
 }

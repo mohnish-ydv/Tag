@@ -7483,3 +7483,162 @@ textarea.field{
   color: #777777;
 }
 
+
+
+/* ============================================================
+   TAG UX WAR-ROOM PATCH
+   ============================================================ */
+
+.field-error {
+  border-color: #c83d3d !important;
+  box-shadow: 0 0 0 1px rgba(200,61,61,.08);
+}
+
+.field-error-text {
+  display: block;
+  margin-top: 6px;
+  color: #b52f2f;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.address-route-card {
+  margin: 4px 16px 14px;
+  padding: 8px 16px;
+  border: 1px solid rgba(20,25,30,.08);
+  border-radius: 22px;
+  background: #fff;
+}
+
+.route-field-static {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.route-field-static > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.route-field-static small {
+  display: block;
+  font-size: 9px;
+  letter-spacing: .1em;
+  opacity: .5;
+  margin-bottom: 3px;
+}
+
+.route-field-static strong {
+  display: block;
+  font-size: 15px;
+}
+
+.route-field-static p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: .55;
+}
+
+.route-bullet {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  border-radius: 50%;
+  border: 3px solid #111;
+}
+
+.route-bullet.to {
+  border-radius: 3px;
+}
+
+.route-connector {
+  width: 1px;
+  height: 15px;
+  background: rgba(20,25,30,.16);
+  margin-left: 6px;
+}
+
+.address-flow-map {
+  margin: 0 16px 12px;
+  min-height: 300px;
+}
+
+.address-next-wrap {
+  padding: 0 16px 22px;
+}
+
+.address-helper {
+  margin: 0 0 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #777;
+}
+
+.profile-group-title {
+  margin: 0 0 8px 2px;
+  font-size: 10px;
+  letter-spacing: .11em;
+  font-weight: 700;
+  color: #8a8a8a;
+}
+
+.profile-trust-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid rgba(20,25,30,.08);
+  border-radius: 18px;
+  background: #fafafa;
+}
+
+.profile-danger .account-row {
+  border-color: rgba(190,50,50,.16);
+}
+
+.match-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.match-hero h1 {
+  margin: 4px 0 2px;
+  font-size: 24px;
+}
+
+.match-hero p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.match-card {
+  border: 1px solid rgba(20,25,30,.08);
+  border-radius: 20px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.match-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid rgba(20,25,30,.07);
+  font-size: 13px;
+}
+
+.match-row:last-child {
+  border-bottom: 0;
+}
+
+.match-row span {
+  color: #777;
+}
+
+.match-row strong {
+  text-align: right;
+}
