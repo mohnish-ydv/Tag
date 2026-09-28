@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { supabase } from './lib/supabase'
 
 function Icon({ name, size = 20, stroke = 1.8 }) {
   const common = {
@@ -165,6 +166,8 @@ function Auth({ mode, go }) {
   const [mobile, setMobile] = useState('')
   const [password, setPassword] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
 
   const mobileOk = /^\+?91?\s?\d{10}$/.test(
     mobile.replace(/\s/g, '')
@@ -176,6 +179,24 @@ function Auth({ mode, go }) {
     mobileOk &&
     passwordOk &&
     (!signup || nameOk)
+
+  const signInWithGoogle = async () => {
+    setGoogleLoading(true)
+    setAuthError('')
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    })
+
+    if (error) {
+      console.error('Google OAuth error:', error)
+      setAuthError(error.message)
+      setGoogleLoading(false)
+    }
+  }
 
   return (
     <main className="screen">
@@ -274,6 +295,23 @@ function Auth({ mode, go }) {
 
         <div className="mt-32 stack-12">
 
+          <button
+            className="btn btn-ghost"
+            type="button"
+            onClick={signInWithGoogle}
+            disabled={googleLoading}
+          >
+            {googleLoading
+              ? 'Connecting to Google…'
+              : 'Continue with Google'}
+          </button>
+
+          {authError && (
+            <small className="field-error-text">
+              {authError}
+            </small>
+          )}
+
           <Button
             onClick={() => {
               setSubmitted(true)
@@ -310,108 +348,770 @@ function Auth({ mode, go }) {
   )
 }
 
+function parseCommuteRoute(value) {
+  const raw = value.trim()
+
+  const separators = [
+    /\s*→\s*/,
+    /\s+to\s+/i,
+    /\s*-\s*/,
+  ]
+
+  for (const separator of separators) {
+    const parts = raw.split(separator).map(part => part.trim()).filter(Boolean)
+
+    if (parts.length === 2) {
+      return {
+        origin: parts[0],
+        destination: parts[1],
+      }
+    }
+  }
+
+  return {
+    origin: raw,
+    destination: raw,
+  }
+}
+
+function formatCommuteRoute(commute) {
+  if (!commute) return 'Add your usual journey'
+
+  return `${commute.origin} → ${commute.destination}`
+}
+
+function formatCommuteTime(value) {
+  if (!value) return ''
+
+  const [hourText, minuteText] = value.split(':')
+  const hour = Number(hourText)
+  const minute = minuteText ?? '00'
+
+  if (!Number.isFinite(hour)) return ''
+
+  const suffix = hour >= 12 ? 'PM' : 'AM'
+  const displayHour = hour % 12 || 12
+
+  return `${displayHour}:${minute} ${suffix}`
+}
+
 function ProfileSetup({ go }) {
   const [about, setAbout] = useState('')
-  const [journey, setJourney] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [originSearch, setOriginSearch] = useState('')
+  const [destinationSearch, setDestinationSearch] = useState('')
+  const [originPlace, setOriginPlace] = useState(null)
+  const [destinationPlace, setDestinationPlace] = useState(null)
 
-  const valid =
-    about.trim().length >= 3 &&
-    journey.trim().length >= 3
+  const [originResults, setOriginResults] = useState([])
+  const [destinationResults, setDestinationResults] = useState([])
+  const [searchingOrigin, setSearchingOrigin] = useState(false)
+  const [searchingDestination, setSearchingDestination] = useState(false)
+  const [locating, setLocating] = useState(false)
+
+  const [displayName, setDisplayName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return
+
+      const user = data.user
+      const metadata = user?.user_metadata ?? {}
+
+      setDisplayName(
+        metadata.full_name ||
+        metadata.name ||
+        user?.email?.split('@')[0] ||
+        'Tag User'
+      )
+    })
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const searchPlaces = async (
+    query,
+    setResults,
+    setSearching
+  ) => {
+    const value = query.trim()
+
+    if (value.length < 3) {
+      setResults([])
+      return
+    }
+
+    setSearching(true)
+
+    try {
+      const params = new URLSearchParams({
+        format: 'jsonv2',
+        q: value,
+        limit: '5',
+        addressdetails: '1',
+        countrycodes: 'in',
+      })
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Accept-Language': 'en-IN,en;q=0.8',
+          },
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error('Place search failed.')
+      }
+
+      const results = await response.json()
+
+      setResults(
+        (results ?? []).map(item => ({
+          id: String(item.place_id),
+          label: item.display_name,
+          lat: Number(item.lat),
+          lng: Number(item.lon),
+        }))
+      )
+    } catch (error) {
+      console.error('PLACE SEARCH FAILED:', error)
+      setResults([])
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const selectOrigin = place => {
+    setOriginPlace(place)
+    setOriginSearch(place.label)
+    setOriginResults([])
+  }
+
+  const selectDestination = place => {
+    setDestinationPlace(place)
+    setDestinationSearch(place.label)
+    setDestinationResults([])
+  }
+
+  const useCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setSaveError('Location is not supported on this device.')
+      return
+    }
+
+    setLocating(true)
+    setSaveError('')
+
+    navigator.geolocation.getCurrentPosition(
+      async position => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+
+        try {
+          const params = new URLSearchParams({
+            format: 'jsonv2',
+            lat: String(lat),
+            lon: String(lng),
+            zoom: '18',
+            addressdetails: '1',
+          })
+
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
+            {
+              headers: {
+                Accept: 'application/json',
+                'Accept-Language': 'en-IN,en;q=0.8',
+              },
+            }
+          )
+
+          if (!response.ok) {
+            throw new Error('Could not identify your location.')
+          }
+
+          const result = await response.json()
+
+          selectOrigin({
+            id: String(result.place_id ?? `${lat},${lng}`),
+            label:
+              result.display_name ||
+              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            lat,
+            lng,
+          })
+        } catch (error) {
+          console.error('REVERSE GEOCODE FAILED:', error)
+
+          selectOrigin({
+            id: `${lat},${lng}`,
+            label: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+            lat,
+            lng,
+          })
+        } finally {
+          setLocating(false)
+        }
+      },
+      error => {
+        console.error('LOCATION FAILED:', error)
+
+        const messages = {
+          1: 'Location permission was denied. Please allow location access and try again.',
+          2: 'Your location could not be determined.',
+          3: 'Location request timed out. Please try again.',
+        }
+
+        setSaveError(
+          messages[error.code] ||
+          'Could not get your current location.'
+        )
+
+        setLocating(false)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 60000,
+      }
+    )
+  }
+
+  const saveProfile = async () => {
+    setSaveError('')
+
+    if (saving) return
+
+    if (
+      (originSearch.trim() && !originPlace) ||
+      (destinationSearch.trim() && !destinationPlace)
+    ) {
+      setSaveError('Please select a place from the search results.')
+      return
+    }
+
+    if (
+      (originPlace && !destinationPlace) ||
+      (!originPlace && destinationPlace)
+    ) {
+      setSaveError('Select both your starting point and destination.')
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        throw new Error('Your session has expired. Please sign in again.')
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            display_name: displayName.trim() || 'Tag User',
+            phone: user.phone ?? null,
+            avatar_url: user.user_metadata?.avatar_url ?? null,
+            bio: about.trim() || null,
+            onboarding_completed: true,
+          },
+          {
+            onConflict: 'id',
+          }
+        )
+
+      if (profileError) {
+        throw new Error(profileError.message)
+      }
+
+      if (originPlace && destinationPlace) {
+        const { data: existingCommutes, error: existingError } =
+          await supabase
+            .from('commutes')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+
+        if (existingError) {
+          throw new Error(existingError.message)
+        }
+
+        const payload = {
+          user_id: user.id,
+          role: 'either',
+          origin: originPlace.label,
+          destination: destinationPlace.label,
+          origin_lat: originPlace.lat,
+          origin_lng: originPlace.lng,
+          destination_lat: destinationPlace.lat,
+          destination_lng: destinationPlace.lng,
+          days: [1, 2, 3, 4, 5],
+          seats_total: 1,
+          status: 'active',
+        }
+
+        if (existingCommutes?.[0]?.id) {
+          const { error } = await supabase
+            .from('commutes')
+            .update(payload)
+            .eq('id', existingCommutes[0].id)
+            .eq('user_id', user.id)
+
+          if (error) throw new Error(error.message)
+        } else {
+          const { error } = await supabase
+            .from('commutes')
+            .insert(payload)
+
+          if (error) throw new Error(error.message)
+        }
+      }
+
+      go('home')
+    } catch (error) {
+      console.error('PROFILE SETUP FAILED:', error)
+      setSaveError(
+        error?.message ||
+        'Could not complete your profile.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const skipSetup = async () => {
+    if (saving) return
+
+    setSaving(true)
+    setSaveError('')
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        throw new Error('Your session has expired. Please sign in again.')
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: user.id,
+            display_name: displayName.trim() || 'Tag User',
+            phone: user.phone ?? null,
+            avatar_url: user.user_metadata?.avatar_url ?? null,
+            bio: about.trim() || null,
+            onboarding_completed: true,
+          },
+          {
+            onConflict: 'id',
+          }
+        )
+
+      if (error) throw new Error(error.message)
+
+      go('home')
+    } catch (error) {
+      console.error('PROFILE SKIP FAILED:', error)
+      setSaveError(
+        error?.message || 'Could not continue.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <main className="screen">
-      <Header title="Complete your profile" />
+      <Header title="Set up your Tag" />
 
-      <section className="section">
-        <div className="stack-24">
+      <div className="screen-scroll">
+        <section className="section">
+          <div className="stack-24">
 
-          <div>
-            <h2 className="t-title">
-              Tell people a little about you
-            </h2>
+            <div>
+              <h2 className="t-title">
+                Start with what matters
+              </h2>
 
-            <p className="t-body mt-8">
-              Only share what you are comfortable sharing.
-            </p>
-          </div>
+              <p className="t-body mt-8">
+                Add your journey if you are ready. You can complete
+                the rest of your profile later.
+              </p>
+            </div>
 
-          <div
-            className="row"
-            style={{ justifyContent: 'center' }}
-          >
-            <Avatar name="Mohnish Raj" size="lg" />
-          </div>
+            <div
+              className="row"
+              style={{ justifyContent: 'center' }}
+            >
+              <Avatar
+                name={displayName || 'Tag User'}
+                size="lg"
+              />
+            </div>
 
-          <div className="field-group">
-            <p className="t-label">About you</p>
+            <div className="field-group">
+              <p className="t-label">
+                Your name <span style={{ opacity: 0.55 }}>(optional)</span>
+              </p>
 
-            <textarea
-              className={
-                submitted && about.trim().length < 3
-                  ? 'field field-error'
-                  : 'field'
-              }
-              value={about}
-              onChange={e => setAbout(e.target.value)}
-              onBlur={() => setSubmitted(true)}
-              placeholder="What should people know?"
-            />
+              <input
+                className="field"
+                value={displayName}
+                onChange={e => setDisplayName(e.target.value)}
+                placeholder="Enter your name"
+              />
+            </div>
 
-            {submitted && about.trim().length < 3 && (
+            <div className="field-group">
+              <p className="t-label">
+                About you <span style={{ opacity: 0.55 }}>(optional)</span>
+              </p>
+
+              <textarea
+                className="field"
+                value={about}
+                onChange={e => setAbout(e.target.value)}
+                placeholder="What should people know?"
+              />
+            </div>
+
+            <div className="field-group">
+              <p className="t-label">
+                Starting point <span style={{ opacity: 0.55 }}>(optional)</span>
+              </p>
+
+              <input
+                className="field"
+                value={originSearch}
+                onChange={e => {
+                  const value = e.target.value
+                  setOriginSearch(value)
+                  setOriginPlace(null)
+
+                  searchPlaces(
+                    value,
+                    setOriginResults,
+                    setSearchingOrigin
+                  )
+                }}
+                placeholder="Search your starting point"
+              />
+
+              <button
+                type="button"
+                className="btn btn-ghost mt-8"
+                onClick={useCurrentLocation}
+                disabled={locating}
+              >
+                {locating
+                  ? 'Finding your location…'
+                  : 'Use current location'}
+              </button>
+
+              {searchingOrigin && (
+                <small className="t-body mt-8">
+                  Searching places…
+                </small>
+              )}
+
+              {originResults.length > 0 && (
+                <div className="stack-8 mt-8">
+                  {originResults.map(place => (
+                    <button
+                      type="button"
+                      key={place.id}
+                      className="card card-pad"
+                      onClick={() => selectOrigin(place)}
+                      style={{
+                        textAlign: 'left',
+                        width: '100%',
+                      }}
+                    >
+                      <strong>
+                        {place.label.split(',')[0]}
+                      </strong>
+
+                      <span
+                        className="t-small"
+                        style={{
+                          display: 'block',
+                          marginTop: 4,
+                        }}
+                      >
+                        {place.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="field-group">
+              <p className="t-label">
+                Destination <span style={{ opacity: 0.55 }}>(optional)</span>
+              </p>
+
+              <input
+                className="field"
+                value={destinationSearch}
+                onChange={e => {
+                  const value = e.target.value
+                  setDestinationSearch(value)
+                  setDestinationPlace(null)
+
+                  searchPlaces(
+                    value,
+                    setDestinationResults,
+                    setSearchingDestination
+                  )
+                }}
+                placeholder="Search your destination"
+              />
+
+              {searchingDestination && (
+                <small className="t-body mt-8">
+                  Searching places…
+                </small>
+              )}
+
+              {destinationResults.length > 0 && (
+                <div className="stack-8 mt-8">
+                  {destinationResults.map(place => (
+                    <button
+                      type="button"
+                      key={place.id}
+                      className="card card-pad"
+                      onClick={() => selectDestination(place)}
+                      style={{
+                        textAlign: 'left',
+                        width: '100%',
+                      }}
+                    >
+                      <strong>
+                        {place.label.split(',')[0]}
+                      </strong>
+
+                      <span
+                        className="t-small"
+                        style={{
+                          display: 'block',
+                          marginTop: 4,
+                        }}
+                      >
+                        {place.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {originPlace && destinationPlace && (
+              <div className="card card-pad">
+                <p className="t-small">YOUR JOURNEY</p>
+
+                <p className="person-name mt-8">
+                  {originPlace.label.split(',')[0]}
+                  {' → '}
+                  {destinationPlace.label.split(',')[0]}
+                </p>
+
+                <p className="t-small mt-8">
+                  Your selected locations are used to improve
+                  commute matching.
+                </p>
+              </div>
+            )}
+
+            {saveError && (
               <small className="field-error-text">
-                Tell people a little about you
+                {saveError}
               </small>
             )}
+
           </div>
 
-          <div className="field-group">
-            <p className="t-label">Your usual journey</p>
+          <div className="mt-32 stack-12">
+            <Button
+              onClick={saveProfile}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Continue'}
+            </Button>
 
-            <input
-              className={
-                submitted && journey.trim().length < 3
-                  ? 'field field-error'
-                  : 'field'
-              }
-              value={journey}
-              onChange={e => setJourney(e.target.value)}
-              onBlur={() => setSubmitted(true)}
-              placeholder="e.g. Patna → Bihta"
-            />
-
-            {submitted && journey.trim().length < 3 && (
-              <small className="field-error-text">
-                Enter your usual journey
-              </small>
-            )}
+            <Button
+              variant="secondary"
+              onClick={skipSetup}
+              disabled={saving}
+            >
+              Skip for now
+            </Button>
           </div>
-
-        </div>
-
-        <div className="mt-32">
-          <Button
-            onClick={() => {
-              setSubmitted(true)
-
-              if (valid) {
-                go('home')
-              }
-            }}
-          >
-            Finish profile
-          </Button>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   )
 }
 
 function Home({ go }) {
+  const [commute, setCommute] = useState(null)
+  const [nearbyCommutes, setNearbyCommutes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadHomeData = async () => {
+      setLoading(true)
+      setLoadError('')
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        if (mounted) {
+          setLoading(false)
+          setLoadError('Please sign in again.')
+        }
+        return
+      }
+
+      const { data: ownCommutes, error: ownError } = await supabase
+        .from('commutes')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (ownError) {
+        if (mounted) {
+          setLoading(false)
+          setLoadError(ownError.message)
+        }
+        return
+      }
+
+      const currentCommute = ownCommutes?.[0] ?? null
+
+      let discoveryQuery = supabase
+        .from('commutes')
+        .select(`
+          id,
+          user_id,
+          origin,
+          destination,
+          departure_time,
+          role,
+          seats_total,
+          vehicle_type,
+          profiles (
+            display_name,
+            avatar_url,
+            bio
+          )
+        `)
+        .eq('status', 'active')
+        .neq('user_id', user.id)
+        .limit(6)
+
+      if (currentCommute) {
+        // Start with the strongest deterministic signal: same origin.
+        // Destination compatibility is scored client-side so we can
+        // gracefully handle partial/nearby route text without requiring
+        // a new database function.
+        discoveryQuery = discoveryQuery
+          .eq('origin', currentCommute.origin)
+      }
+
+      const { data: matches, error: matchError } = await discoveryQuery
+
+      if (!mounted) return
+
+      if (matchError) {
+        setCommute(currentCommute)
+        setNearbyCommutes([])
+        setLoadError(matchError.message)
+        setLoading(false)
+        return
+      }
+
+      const normalize = value =>
+        String(value || '')
+          .trim()
+          .toLowerCase()
+          .replace(/\\s+/g, ' ')
+
+      const destination = normalize(currentCommute?.destination)
+
+      const rankedMatches = (matches ?? [])
+        .map(item => {
+          const itemDestination = normalize(item.destination)
+          let score = 50
+
+          if (destination && itemDestination === destination) {
+            score += 40
+          } else if (
+            destination &&
+            (
+              itemDestination.includes(destination) ||
+              destination.includes(itemDestination)
+            )
+          ) {
+            score += 25
+          }
+
+          if (
+            currentCommute?.role &&
+            currentCommute.role !== 'either' &&
+            item.role &&
+            item.role !== 'either' &&
+            currentCommute.role !== item.role
+          ) {
+            score += 8
+          }
+
+          return { ...item, match_score: Math.min(score, 100) }
+        })
+        .sort((a, b) => b.match_score - a.match_score)
+
+      setCommute(currentCommute)
+      setNearbyCommutes(rankedMatches)
+      setLoading(false)
+    }
+
+    loadHomeData()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   return (
     <main className="screen tag-home">
 
-      {/* Journey surface */}
       <div className="tag-map">
         <div className="map-land land-a" />
         <div className="map-land land-b" />
@@ -431,7 +1131,6 @@ function Home({ go }) {
         </div>
       </div>
 
-      {/* App chrome */}
       <header className="tag-home-header">
         <button
           className="tag-control"
@@ -452,13 +1151,17 @@ function Home({ go }) {
         </button>
       </header>
 
-      {/* Context indicator */}
       <div className="journey-context">
         <span className="context-dot" />
-        <span>Ready to Tag</span>
+        <span>
+          {loading
+            ? 'Getting your journey ready…'
+            : commute
+              ? 'Ready to Tag'
+              : 'Set your usual journey'}
+        </span>
       </div>
 
-      {/* Main journey surface */}
       <section className="tag-home-sheet">
 
         <div className="sheet-grabber" />
@@ -466,7 +1169,13 @@ function Home({ go }) {
         <div className="sheet-heading">
           <div>
             <p className="sheet-eyebrow">YOUR JOURNEY</p>
-            <h1>Where are you headed?</h1>
+            <h1>
+              {loading
+                ? 'Loading your journey…'
+                : commute
+                  ? formatCommuteRoute(commute)
+                  : 'Where are you headed?'}
+            </h1>
           </div>
 
           <button
@@ -494,6 +1203,12 @@ function Home({ go }) {
           <Icon name="arrow" size={19} />
         </button>
 
+        {loadError && (
+          <div className="field-error-text" style={{ marginTop: 12 }}>
+            {loadError}
+          </div>
+        )}
+
         <div className="home-discovery">
           <div className="home-discovery-heading">
             <div>
@@ -507,35 +1222,66 @@ function Home({ go }) {
           </div>
 
           <div className="route-people">
-
-            <button className="route-person" onClick={() => go('match')}>
-              <Avatar name="Aarav Sharma" size="sm" />
-
-              <div className="route-person-copy">
-                <strong>Aarav Sharma</strong>
-                <span>Patna → Danapur</span>
+            {loading && (
+              <div className="t-body">
+                Finding people travelling your way…
               </div>
+            )}
 
-              <span className="route-match">92%</span>
-            </button>
-
-            <button className="route-person" onClick={() => go('match')}>
-              <Avatar name="Ananya Singh" size="sm" />
-
-              <div className="route-person-copy">
-                <strong>Ananya Singh</strong>
-                <span>Patna → Bihta</span>
+            {!loading && nearbyCommutes.length === 0 && (
+              <div className="t-body">
+                No matching commuters yet. Check Discover to explore more journeys.
               </div>
+            )}
 
-              <span className="route-match">87%</span>
-            </button>
+            {!loading && nearbyCommutes.slice(0, 2).map(item => {
+              const profile = item.profiles ?? {}
+              const name = profile.display_name || 'Tag commuter'
 
+              return (
+                <button
+                  className="route-person"
+                  key={item.id}
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      'tag:selected-commute',
+                      JSON.stringify({
+                        commute: item,
+                        match_score: item.match_score,
+                      }),
+                    )
+                    go('match')
+                  }}
+                >
+                  <Avatar
+                    name={name}
+                    size="sm"
+                  />
+
+                  <div className="route-person-copy">
+                    <strong>{name}</strong>
+                    <span>
+                      {formatCommuteRoute(item)}
+                    </span>
+                  </div>
+
+                  <span className="route-match">
+                    {item.match_score
+                      ? `${item.match_score}% match`
+                      : item.role === 'driver'
+                        ? 'Driver'
+                        : item.role === 'rider'
+                          ? 'Rider'
+                          : 'Match'}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
       </section>
 
-      {/* Primary creation action */}
       <button
         className="create-tag"
         onClick={() => go('location')}
@@ -547,7 +1293,6 @@ function Home({ go }) {
         <span>Create Tag</span>
       </button>
 
-      {/* Tag navigation */}
       <nav className="tag-bottom-nav">
 
         <button className="tag-nav active" onClick={() => go('home')}>
@@ -584,6 +1329,147 @@ function Home({ go }) {
 }
 
 function Discover({ go }) {
+  const [commutes, setCommutes] = useState([])
+  const [myCommute, setMyCommute] = useState(null)
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadCommutes = async () => {
+      setLoading(true)
+      setLoadError('')
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        if (mounted) {
+          setLoading(false)
+          setLoadError('Please sign in again.')
+        }
+        return
+      }
+
+      const { data: ownCommutes } = await supabase
+        .from('commutes')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (mounted) {
+        setMyCommute(ownCommutes?.[0] ?? null)
+      }
+
+      const { data, error } = await supabase
+        .from('commutes')
+        .select(`
+          id,
+          user_id,
+          origin,
+          destination,
+          departure_time,
+          arrival_time,
+          role,
+          seats_total,
+          vehicle_type,
+          detour_preference,
+          profiles (
+            display_name,
+            avatar_url,
+            bio
+          )
+        `)
+        .eq('status', 'active')
+        .neq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(30)
+
+      if (!mounted) return
+
+      if (error) {
+        setLoadError(error.message)
+        setCommutes([])
+      } else {
+        setCommutes(data ?? [])
+      }
+
+      setLoading(false)
+    }
+
+    loadCommutes()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const normalize = value =>
+    String(value || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\\s+/g, ' ')
+
+  const searchTerm = search.trim().toLowerCase()
+  const myOrigin = normalize(myCommute?.origin)
+  const myDestination = normalize(myCommute?.destination)
+
+  const filteredCommutes = commutes
+    .map(item => {
+      const itemOrigin = normalize(item.origin)
+      const itemDestination = normalize(item.destination)
+
+      let score = 50
+
+      if (myOrigin && itemOrigin === myOrigin) {
+        score += 25
+      }
+
+      if (myDestination && itemDestination === myDestination) {
+        score += 25
+      } else if (
+        myDestination &&
+        (
+          itemDestination.includes(myDestination) ||
+          myDestination.includes(itemDestination)
+        )
+      ) {
+        score += 15
+      }
+
+      if (
+        myCommute?.role &&
+        myCommute.role !== 'either' &&
+        item.role &&
+        item.role !== 'either' &&
+        myCommute.role !== item.role
+      ) {
+        score += 8
+      }
+
+      return {
+        ...item,
+        match_score: Math.min(score, 100),
+      }
+    })
+    .filter(item => {
+      if (!searchTerm) return true
+
+      const profile = item.profiles ?? {}
+      const name = profile.display_name || ''
+      const route = `${item.origin} ${item.destination}`
+
+      return `${name} ${route}`
+        .toLowerCase()
+        .includes(searchTerm)
+    })
+    .sort((a, b) => b.match_score - a.match_score)
+
   return (
     <main className="screen">
       <Header
@@ -599,7 +1485,11 @@ function Discover({ go }) {
         <section className="section compact">
           <div className="search-box">
             <Icon name="search" size={18} />
-            <input placeholder="Search people or journeys" />
+            <input
+              placeholder="Search people or journeys"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
           </div>
         </section>
 
@@ -617,25 +1507,87 @@ function Discover({ go }) {
             <h2 className="section-title">Recommended for you</h2>
           </div>
 
+          {loadError && (
+            <small className="field-error-text">
+              {loadError}
+            </small>
+          )}
+
+          {loading && (
+            <p className="t-body">
+              Finding commuters…
+            </p>
+          )}
+
+          {!loading && !loadError && filteredCommutes.length === 0 && (
+            <p className="t-body">
+              No commuters found yet. Try another search.
+            </p>
+          )}
+
           <div className="stack-12">
-            {[
-              ['Aarav Sharma', 'Patna → Danapur', '92% match'],
-              ['Ananya Singh', 'Patna → Bihta', '87% match'],
-              ['Rahul Kumar', 'Kankarbagh → Patliputra', '81% match'],
-              ['Priya Verma', 'Patna → Hajipur', '76% match'],
-            ].map(([name, journey, match]) => (
-              <button className="card person-card" key={name} onClick={() => go('match')}>
-                <Avatar name={name} />
-                <div className="person-info">
-                  <p className="person-name">{name}</p>
-                  <p className="person-meta">{journey}</p>
-                  <div className="mt-8">
-                    <span className="badge success">{match}</span>
+            {!loading && filteredCommutes.map(item => {
+              const profile = item.profiles ?? {}
+              const name = profile.display_name || 'Tag commuter'
+
+              return (
+                <button
+                  className="card person-card"
+                  key={item.id}
+                  onClick={() => {
+                    sessionStorage.setItem(
+                      'tag:selected-commute',
+                      JSON.stringify({
+                        commute: item,
+                        match_score: item.match_score,
+                      })
+                    )
+                    go('match')
+                  }}
+                >
+                  <Avatar
+                    name={name}
+                    src={profile.avatar_url}
+                  />
+
+                  <div className="person-info">
+                    <p className="person-name">{name}</p>
+
+                    <p className="person-meta">
+                      {formatCommuteRoute(item)}
+                    </p>
+
+                    <div className="mt-8">
+                      <span className="badge success">
+                        {item.role === 'driver'
+                          ? 'Driver'
+                          : item.role === 'rider'
+                            ? 'Rider'
+                            : 'Open to either'}
+                      </span>
+
+                      <span
+                        className="badge"
+                        style={{ marginLeft: 6 }}
+                      >
+                        {item.match_score}% match
+                      </span>
+
+                      {item.departure_time && (
+                        <span
+                          className="badge"
+                          style={{ marginLeft: 6 }}
+                        >
+                          {formatCommuteTime(item.departure_time)}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <Icon name="arrow" size={18} />
-              </button>
-            ))}
+
+                  <Icon name="arrow" size={18} />
+                </button>
+              )
+            })}
           </div>
         </section>
       </div>
@@ -732,7 +1684,7 @@ function Location({ go }) {
           <b>›</b>
         </button>
 
-        <Button onClick={() => go('ride')}>
+        <Button onClick={() => go('discover')}>
           Find people on my route
         </Button>
       </section>
@@ -740,870 +1692,727 @@ function Location({ go }) {
   )
 }
 
-function RideFlow({ go }) {
-  const [step, setStep] = React.useState(0)
-  const [transport, setTransport] = React.useState('Car')
-  const [selectedCar, setSelectedCar] = React.useState(null)
-  const [requested, setRequested] = React.useState(false)
-
-  const cars = [
-    {
-      id: 'sedan',
-      name: 'Sedan',
-      type: 'Comfort',
-      price: '₹420',
-      eta: '4 min',
-      seats: '4 seats',
-      rating: '4.8',
-      plate: 'BR 01 AX 4821',
-      driver: 'Aarav Sharma'
-    },
-    {
-      id: 'hatchback',
-      name: 'Hatchback',
-      type: 'Economy',
-      price: '₹310',
-      eta: '6 min',
-      seats: '4 seats',
-      rating: '4.7',
-      plate: 'BR 01 CQ 7314',
-      driver: 'Rohan Kumar'
-    },
-    {
-      id: 'suv',
-      name: 'SUV',
-      type: 'Premium',
-      price: '₹560',
-      eta: '8 min',
-      seats: '6 seats',
-      rating: '4.9',
-      plate: 'BR 01 DR 2098',
-      driver: 'Vikram Singh'
-    }
-  ]
-
-  const currentCar = selectedCar || cars[0]
-
-  const back = () => {
-    if (step === 0) {
-      go('location')
-    } else {
-      setStep(step - 1)
-    }
-  }
-
-  const next = () => setStep(step + 1)
-
-  if (step === 0) {
-    return (
-      <main className="ride-flow-screen">
-        <div className="ride-flow-header">
-          <button className="ride-back" onClick={back}>‹</button>
-          <div>
-            <small>STEP 1 OF 6</small>
-            <h1>Select transport</h1>
-          </div>
-        </div>
-
-        <section className="ride-route-mini">
-          <div className="ride-route-point">
-            <span className="ride-route-dot start" />
-            <div>
-              <small>FROM</small>
-              <strong>Patna</strong>
-            </div>
-          </div>
-          <div className="ride-route-line" />
-          <div className="ride-route-point">
-            <span className="ride-route-dot end" />
-            <div>
-              <small>TO</small>
-              <strong>Danapur</strong>
-            </div>
-          </div>
-        </section>
-
-        <section className="ride-section">
-          <div className="ride-section-title">
-            <span>Choose how you want to travel</span>
-          </div>
-
-          <div className="transport-grid">
-            {[
-              ['Car', 'CAR', 'Comfortable private ride'],
-              ['Bike', 'BIKE', 'Quick solo journey'],
-              ['Auto', 'AUTO', 'Affordable local ride'],
-              ['Delivery', 'BOX', 'Send something across town']
-            ].map(([name, symbol, copy]) => (
-              <button
-                key={name}
-                className={`transport-card ${transport === name ? 'selected' : ''}`}
-                onClick={() => setTransport(name)}
-              >
-                <span className="transport-symbol">{symbol}</span>
-                <strong>{name}</strong>
-                <small>{copy}</small>
-                {transport === name && <span className="transport-check">✓</span>}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <div className="ride-bottom-action">
-          <div>
-            <small>YOUR ROUTE</small>
-            <strong>Patna → Danapur</strong>
-          </div>
-          <button onClick={next}>Continue <span>→</span></button>
-        </div>
-      </main>
-    )
-  }
-
-  if (step === 1) {
-    return (
-      <main className="ride-flow-screen">
-        <div className="ride-flow-header">
-          <button className="ride-back" onClick={back}>‹</button>
-          <div>
-            <small>STEP 2 OF 6</small>
-            <h1>Available rides</h1>
-          </div>
-          <button className="ride-filter">≡</button>
-        </div>
-
-        <section className="ride-map-preview">
-          <div className="map-road r1" />
-          <div className="map-road r2" />
-          <div className="map-road r3" />
-          <div className="map-water" />
-          <div className="map-route-path" />
-          <span className="map-pin from">A</span>
-          <span className="map-pin to">B</span>
-          <span className="map-current">●</span>
-        </section>
-
-        <section className="available-summary">
-          <div>
-            <small>RIDES NEAR YOU</small>
-            <h2>Choose a ride</h2>
-          </div>
-          <span>{cars.length} available</span>
-        </section>
-
-        <div className="ride-bottom-action">
-          <div>
-            <small>SELECTED</small>
-            <strong>{transport}</strong>
-          </div>
-          <button onClick={next}>View rides <span>→</span></button>
-        </div>
-      </main>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <main className="ride-flow-screen">
-        <div className="ride-flow-header">
-          <button className="ride-back" onClick={back}>‹</button>
-          <div>
-            <small>STEP 3 OF 6</small>
-            <h1>Choose your ride</h1>
-          </div>
-        </div>
-
-        <section className="ride-list">
-          {cars.map((car) => (
-            <button
-              key={car.id}
-              className={`ride-car-card ${selectedCar?.id === car.id ? 'selected' : ''}`}
-              onClick={() => {
-                setSelectedCar(car)
-                setStep(3)
-              }}
-            >
-              <div className="car-visual">
-                <div className="car-roof" />
-                <div className="car-body" />
-                <i />
-                <b />
-              </div>
-
-              <div className="ride-car-info">
-                <div className="row-between">
-                  <div>
-                    <strong>{car.name}</strong>
-                    <small>{car.type} · {car.seats}</small>
-                  </div>
-                  <strong className="ride-price">{car.price}</strong>
-                </div>
-
-                <div className="ride-car-meta">
-                  <span>★ {car.rating}</span>
-                  <span>{car.eta} away</span>
-                </div>
-              </div>
-
-              <span className="ride-chevron">›</span>
-            </button>
-          ))}
-        </section>
-
-        <div className="ride-info-note">
-          <span>✓</span>
-          <p>Only verified drivers and vehicles are shown on Tag.</p>
-        </div>
-      </main>
-    )
-  }
-
-  if (step === 3) {
-    return (
-      <main className="ride-flow-screen">
-        <div className="ride-flow-header">
-          <button className="ride-back" onClick={back}>‹</button>
-          <div>
-            <small>STEP 4 OF 6</small>
-            <h1>Ride details</h1>
-          </div>
-        </div>
-
-        <section className="car-detail-hero">
-          <div className="large-car-visual">
-            <div className="car-roof" />
-            <div className="car-body" />
-            <i />
-            <b />
-          </div>
-          <div className="car-detail-badge">VERIFIED</div>
-        </section>
-
-        <section className="car-detail-content">
-          <div className="row-between">
-            <div>
-              <small className="eyebrow">VEHICLE</small>
-              <h2>{currentCar.name}</h2>
-              <p>{currentCar.type} · {currentCar.seats}</p>
-            </div>
-            <div className="detail-rating">
-              <strong>★ {currentCar.rating}</strong>
-              <small>verified rating</small>
-            </div>
-          </div>
-
-          <div className="vehicle-number">
-            <small>REGISTRATION</small>
-            <strong>{currentCar.plate}</strong>
-          </div>
-
-          <div className="driver-card">
-            <Avatar name={currentCar.driver} size="sm" />
-            <div>
-              <strong>{currentCar.driver}</strong>
-              <small>Verified Tag driver</small>
-            </div>
-            <span>✓</span>
-          </div>
-
-          <div className="ride-detail-rows">
-            <div><span>Pickup</span><strong>Patna</strong></div>
-            <div><span>Destination</span><strong>Danapur</strong></div>
-            <div><span>Estimated fare</span><strong>{currentCar.price}</strong></div>
-            <div><span>Arrival</span><strong>{currentCar.eta}</strong></div>
-          </div>
-        </section>
-
-        <div className="ride-bottom-action">
-          <div>
-            <small>ESTIMATED FARE</small>
-            <strong>{currentCar.price}</strong>
-          </div>
-          <button onClick={next}>Request ride <span>→</span></button>
-        </div>
-      </main>
-    )
-  }
-
-  if (step === 4) {
-    return (
-      <main className="ride-flow-screen request-screen">
-        <div className="ride-flow-header">
-          <button className="ride-back" onClick={back}>‹</button>
-          <div>
-            <small>STEP 5 OF 6</small>
-            <h1>Request ride</h1>
-          </div>
-        </div>
-
-        <section className="request-map">
-          <div className="map-road r1" />
-          <div className="map-road r2" />
-          <div className="map-road r3" />
-          <div className="map-route-path" />
-          <span className="map-pin from">A</span>
-          <span className="map-pin to">B</span>
-        </section>
-
-        <section className="request-sheet">
-          <div className="sheet-handle" />
-
-          <div className="request-driver">
-            <Avatar name={currentCar.driver} size="lg" />
-            <div>
-              <small>YOUR DRIVER</small>
-              <h2>{currentCar.driver}</h2>
-              <p>{currentCar.name} · {currentCar.plate}</p>
-            </div>
-            <span className="verified-pill">✓ Verified</span>
-          </div>
-
-          <div className="request-route">
-            <div>
-              <span className="ride-route-dot start" />
-              <div><small>PICKUP</small><strong>Patna</strong></div>
-            </div>
-            <div className="request-route-line" />
-            <div>
-              <span className="ride-route-dot end" />
-              <div><small>DROP-OFF</small><strong>Danapur</strong></div>
-            </div>
-          </div>
-
-          <div className="request-total">
-            <span>Estimated fare</span>
-            <strong>{currentCar.price}</strong>
-          </div>
-
-          <button
-            className="request-confirm"
-            onClick={() => {
-              setRequested(true)
-              setStep(5)
-            }}
-          >
-            {requested ? 'Ride requested' : 'Confirm request'}
-          </button>
-
-          <p className="request-protection">
-            <span>⌁</span> Your contact details remain protected by Tag.
-          </p>
-        </section>
-      </main>
-    )
-  }
-
-  return (
-    <main className="ride-flow-screen thank-you-screen">
-      <div className="thank-you-top">
-        <span className="success-ring">✓</span>
-        <small>REQUEST CONFIRMED</small>
-        <h1>You're all set.</h1>
-        <p>Your ride request has been sent to {currentCar.driver}.</p>
-      </div>
-
-      <section className="confirmation-card">
-        <div className="confirmation-status">
-          <span className="status-dot" />
-          <div>
-            <strong>Waiting for confirmation</strong>
-            <small>We'll notify you when your driver accepts.</small>
-          </div>
-        </div>
-
-        <div className="confirmation-route">
-          <div><span className="ride-route-dot start" /><strong>Patna</strong></div>
-          <div className="confirmation-line" />
-          <div><span className="ride-route-dot end" /><strong>Danapur</strong></div>
-        </div>
-
-        <div className="confirmation-driver">
-          <Avatar name={currentCar.driver} size="sm" />
-          <div>
-            <strong>{currentCar.driver}</strong>
-            <small>{currentCar.name} · {currentCar.plate}</small>
-          </div>
-          <strong>{currentCar.price}</strong>
-        </div>
-      </section>
-
-      <div className="thank-you-actions">
-        <button onClick={() => go('active')}>Continue journey</button>
-        <button className="secondary-action" onClick={() => go('home')}>Back to home</button>
-      </div>
-    </main>
-  )
-}
-
-
-function PostRideFlow({ go }) {
-  const [step, setStep] = React.useState(0)
-  const [message, setMessage] = React.useState('')
-  const [paymentMethod, setPaymentMethod] = React.useState('Cash')
-  const [rating, setRating] = React.useState(0)
-  const [reviewed, setReviewed] = React.useState(false)
-
-  const next = () => setStep(v => Math.min(v + 1, 6))
-  const back = () => {
-    if (step === 0) {
-      go('ride')
-    } else {
-      setStep(v => v - 1)
-    }
-  }
-
-  if (step === 0) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back} aria-label="Back">‹</button>
-          <div>
-            <small>JOURNEY</small>
-            <strong>Confirm location</strong>
-          </div>
-          <span>29</span>
-        </header>
-
-        <section className="post-location-map">
-          <div className="post-map-grid" />
-          <div className="post-map-road road-a" />
-          <div className="post-map-road road-b" />
-          <div className="post-map-road road-c" />
-          <div className="post-map-route" />
-          <span className="post-map-pin pickup">A</span>
-          <span className="post-map-pin drop">B</span>
-        </section>
-
-        <section className="post-sheet">
-          <div className="post-handle" />
-          <small className="post-eyebrow">YOUR ROUTE</small>
-          <h1>Confirm your journey</h1>
-          <p className="post-muted">
-            Make sure your pickup and destination are correct before continuing.
-          </p>
-
-          <div className="post-route-card">
-            <div>
-              <i className="post-dot start" />
-              <span>
-                <small>PICKUP</small>
-                <strong>Patna, Bihar</strong>
-              </span>
-            </div>
-            <div className="post-route-line" />
-            <div>
-              <i className="post-dot end" />
-              <span>
-                <small>DESTINATION</small>
-                <strong>Danapur, Bihar</strong>
-              </span>
-            </div>
-          </div>
-
-          <button className="post-primary" onClick={next}>
-            Confirm journey <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 1) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>COMMUNICATION</small>
-            <strong>Message</strong>
-          </div>
-          <span>30</span>
-        </header>
-
-        <section className="post-content">
-          <div className="post-person">
-            <Avatar name="Aarav Sharma" size="lg" />
-            <div>
-              <small>CONNECTED WITH</small>
-              <h2>Aarav Sharma</h2>
-              <p>Patna → Danapur · Verified</p>
-            </div>
-          </div>
-
-          <div className="post-chat">
-            <div className="post-message received">
-              <span>Hey! I'm leaving from Patna around 6:30.</span>
-              <small>6:18 PM</small>
-            </div>
-
-            <div className="post-message sent">
-              <span>Perfect, I'll be ready.</span>
-              <small>6:19 PM</small>
-            </div>
-          </div>
-
-          <div className="post-message-input">
-            <input
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              placeholder="Write a message..."
-            />
-            <button onClick={() => setMessage('See you soon!')}>↑</button>
-          </div>
-
-          <button className="post-primary" onClick={next}>
-            Continue <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>COMMUNICATION</small>
-            <strong>Talk</strong>
-          </div>
-          <span>32</span>
-        </header>
-
-        <section className="talk-stage">
-          <div className="talk-orb">
-            <Avatar name="Aarav Sharma" size="lg" />
-          </div>
-
-          <small>CONNECTED</small>
-          <h1>You're talking with Aarav</h1>
-          <p>
-            Your personal contact information stays hidden while using Tag.
-          </p>
-
-          <div className="talk-status">
-            <span />
-            Protected conversation active
-          </div>
-
-          <button className="post-primary" onClick={next}>
-            Continue <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>PAYMENT</small>
-            <strong>Payment</strong>
-          </div>
-          <span>33</span>
-        </header>
-
-        <section className="post-content">
-          <div className="payment-total">
-            <small>TOTAL FARE</small>
-            <strong>₹420</strong>
-            <span>Patna → Danapur</span>
-          </div>
-
-          <div className="payment-options">
-            {['Cash', 'UPI', 'Tag Wallet'].map(method => (
-              <button
-                key={method}
-                className={paymentMethod === method ? 'selected' : ''}
-                onClick={() => setPaymentMethod(method)}
-              >
-                <span className="payment-icon">
-                  {method === 'Cash' ? '₹' : method === 'UPI' ? '⌁' : '◉'}
-                </span>
-                <div>
-                  <strong>{method}</strong>
-                  <small>
-                    {method === 'Cash'
-                      ? 'Pay directly to driver'
-                      : method === 'UPI'
-                        ? 'Fast digital payment'
-                        : 'Use your Tag balance'}
-                  </small>
-                </div>
-                <b>{paymentMethod === method ? '✓' : ''}</b>
-              </button>
-            ))}
-          </div>
-
-          <button className="post-primary" onClick={next}>
-            Continue with {paymentMethod} <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>JOURNEY</small>
-            <strong>Location</strong>
-          </div>
-          <span>34</span>
-        </header>
-
-        <section className="journey-map-large">
-          <div className="post-map-grid" />
-          <div className="post-map-road road-a" />
-          <div className="post-map-road road-b" />
-          <div className="post-map-road road-c" />
-          <div className="journey-live-route" />
-          <span className="post-map-pin pickup">A</span>
-          <span className="post-map-pin drop">B</span>
-
-          <div className="journey-live-card">
-            <span className="status-dot" />
-            <div>
-              <strong>Journey in progress</strong>
-              <small>You're heading to Danapur</small>
-            </div>
-          </div>
-        </section>
-
-        <section className="post-sheet compact">
-          <div className="post-route-card">
-            <div>
-              <i className="post-dot start" />
-              <span>
-                <small>FROM</small>
-                <strong>Patna</strong>
-              </span>
-            </div>
-            <div className="post-route-line" />
-            <div>
-              <i className="post-dot end" />
-              <span>
-                <small>TO</small>
-                <strong>Danapur</strong>
-              </span>
-            </div>
-          </div>
-
-          <button className="post-primary" onClick={next}>
-            Journey completed <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  if (step === 2) {
-    return (
-      <main className="post-ride-screen">
-        <header className="post-flow-header">
-          <button onClick={back}>‹</button>
-          <div>
-            <small>FEEDBACK</small>
-            <strong>Review</strong>
-          </div>
-          <span>35</span>
-        </header>
-
-        <section className="review-stage">
-          <div className="review-check">✓</div>
-          <small>JOURNEY COMPLETED</small>
-          <h1>How was your ride?</h1>
-          <p>Rate your experience with Aarav.</p>
-
-          <div className="review-stars">
-            {[1, 2, 3, 4, 5].map(n => (
-              <button
-                key={n}
-                className={n <= rating ? 'active' : ''}
-                onClick={() => setRating(n)}
-              >
-                ★
-              </button>
-            ))}
-          </div>
-
-          <textarea
-            placeholder="Tell us about your experience..."
-            rows="4"
-          />
-
-          <button
-            className="post-primary"
-            onClick={() => {
-              setReviewed(true)
-              next()
-            }}
-          >
-            {reviewed ? 'Review submitted' : 'Submit review'} <span>→</span>
-          </button>
-        </section>
-      </main>
-    )
-  }
-
-  return (
-    <main className="post-ride-screen final-journey-screen">
-      <section className="final-success">
-        <div className="final-success-icon">✓</div>
-        <small>JOURNEY COMPLETE</small>
-        <h1>Thank you!</h1>
-        <p>
-          Your journey with Tag is complete. Thanks for helping make the
-          community safer and more connected.
-        </p>
-
-        <div className="final-summary">
-          <div>
-            <small>ROUTE</small>
-            <strong>Patna → Danapur</strong>
-          </div>
-          <div>
-            <small>FARE</small>
-            <strong>₹420</strong>
-          </div>
-          <div>
-            <small>RATING</small>
-            <strong>{rating || 5} / 5</strong>
-          </div>
-        </div>
-
-        <button className="post-primary" onClick={() => go('home')}>
-          Back to home <span>→</span>
-        </button>
-      </section>
-    </main>
-  )
-}
-
 function Active({ go }) {
+  const [connection, setConnection] = useState(null)
+  const [otherProfile, setOtherProfile] = useState(null)
+  const [otherCommute, setOtherCommute] = useState(null)
+  const [myCommute, setMyCommute] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadConnection = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const connectionId =
+          sessionStorage.getItem('tag:selected-connection')
+
+        if (!connectionId) {
+          throw new Error('No active Tag selected.')
+        }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+          throw new Error('Please sign in again.')
+        }
+
+        const { data: row, error: connectionError } =
+          await supabase
+            .from('commute_connections')
+            .select(`
+              id,
+              commute_a_id,
+              commute_b_id,
+              user_a,
+              user_b,
+              status,
+              created_at
+            `)
+            .eq('id', connectionId)
+            .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+            .maybeSingle()
+
+        if (connectionError || !row) {
+          throw new Error(
+            connectionError?.message ||
+            'This Tag connection is no longer available.'
+          )
+        }
+
+        if (row.status !== 'active') {
+          throw new Error('This Tag is no longer active.')
+        }
+
+        const otherUserId =
+          row.user_a === user.id
+            ? row.user_b
+            : row.user_a
+
+        const otherCommuteId =
+          row.user_a === user.id
+            ? row.commute_b_id
+            : row.commute_a_id
+
+        const myCommuteId =
+          row.user_a === user.id
+            ? row.commute_a_id
+            : row.commute_b_id
+
+        const [profileResult, otherCommuteResult, myCommuteResult] =
+          await Promise.all([
+            supabase
+              .from('profiles')
+              .select('id,display_name,avatar_url,bio')
+              .eq('id', otherUserId)
+              .maybeSingle(),
+
+            supabase
+              .from('commutes')
+              .select('*')
+              .eq('id', otherCommuteId)
+              .maybeSingle(),
+
+            supabase
+              .from('commutes')
+              .select('*')
+              .eq('id', myCommuteId)
+              .maybeSingle(),
+          ])
+
+        if (profileResult.error) {
+          throw new Error(profileResult.error.message)
+        }
+
+        if (otherCommuteResult.error) {
+          throw new Error(otherCommuteResult.error.message)
+        }
+
+        if (myCommuteResult.error) {
+          throw new Error(myCommuteResult.error.message)
+        }
+
+        if (!mounted) return
+
+        setConnection(row)
+        setOtherProfile(profileResult.data)
+        setOtherCommute(otherCommuteResult.data)
+        setMyCommute(myCommuteResult.data)
+      } catch (err) {
+        console.error('ACTIVE TAG LOAD FAILED:', err)
+
+        if (mounted) {
+          setError(
+            err?.message ||
+            'Could not load this Tag.'
+          )
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadConnection()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const name =
+    otherProfile?.display_name ||
+    'Tag commuter'
+
+  const route =
+    otherCommute
+      ? formatCommuteRoute(otherCommute)
+      : 'Recurring commute'
+
+  if (loading) {
+    return (
+      <main className="screen">
+        <Header title="Active Tag" />
+        <section className="section">
+          <p className="t-body">Loading your Tag…</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (error || !connection) {
+    return (
+      <main className="screen">
+        <Header
+          title="Active Tag"
+          back
+          onBack={() => go('tags')}
+        />
+
+        <section className="section">
+          <div className="card card-pad">
+            <p className="field-error-text">
+              {error || 'This Tag is unavailable.'}
+            </p>
+
+            <div className="mt-16">
+              <Button onClick={() => go('tags')}>
+                Back to My Tags
+              </Button>
+            </div>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  const commuteRole =
+    myCommute?.role === 'driver'
+      ? 'Driver'
+      : myCommute?.role === 'rider'
+        ? 'Rider'
+        : 'Open to either'
+
+  const commuteDays = Array.isArray(myCommute?.days)
+    ? myCommute.days
+    : []
+
+  const daysLabel =
+    commuteDays.length > 0
+      ? commuteDays.join(' · ')
+      : 'Recurring schedule'
+
+  const departureLabel =
+    myCommute?.departure_time
+      ? formatCommuteTime(myCommute.departure_time)
+      : 'Flexible'
+
+  const arrivalLabel =
+    myCommute?.arrival_time
+      ? formatCommuteTime(myCommute.arrival_time)
+      : 'Flexible'
+
   return (
-    <main className="screen">
+    <main className="screen active-screen">
       <Header
         title="Active Tag"
+        back
+        onBack={() => go('tags')}
         right={
-          <button className="icon-btn outline">
+          <button
+            className="icon-btn outline"
+            aria-label="Connection safety"
+            type="button"
+          >
             <Icon name="shield" />
           </button>
         }
       />
 
-      <div className="screen-scroll">
-        <section className="active-top">
-          <div className="row" style={{ gap: 12 }}>
-            <Avatar name="Aarav Sharma" size="lg" />
-            <div>
-              <h2 className="t-heading">You are connected</h2>
-              <p className="t-small">Aarav Sharma · Patna → Danapur</p>
+      <div className="screen-scroll active-scroll">
+
+        <section className="active-connection-hero">
+          <div className="active-person">
+            <Avatar
+              name={name}
+              src={otherProfile?.avatar_url}
+              size="lg"
+            />
+
+            <div className="active-person-copy">
+              <div className="active-live-label">
+                <span className="active-live-dot" />
+                Active connection
+              </div>
+
+              <h1>{name}</h1>
+
+              <p>
+                Your recurring commute connection is ready.
+              </p>
             </div>
           </div>
         </section>
 
-        <div className="status-card">
-          <div className="status-row">
-            <span className="status-dot" />
-            <div>
-              <p className="t-body-strong">Tag is active</p>
-              <p className="t-small">Started 12 minutes ago</p>
-            </div>
+        <section className="active-route-card">
+          <div className="active-card-kicker">
+            RECURRING COMMUTE
           </div>
-        </div>
 
-        <section className="section">
-          <div className="hero-card">
-            <div className="hero-card-media" />
-            <div className="hero-card-body">
-              <p className="t-small">CURRENT JOURNEY</p>
-              <p className="t-heading mt-4">Patna → Danapur</p>
-              <p className="t-body mt-8">
-                Keep your conversation and journey updates inside Tag.
+          <div className="active-route">
+            {myCommute
+              ? formatCommuteRoute(myCommute)
+              : route}
+          </div>
+
+          <div className="active-route-meta">
+            <span className="active-route-status">
+              <span className="active-route-status-dot" />
+              Active
+            </span>
+
+            <span>{commuteRole}</span>
+          </div>
+        </section>
+
+        <section className="active-details-card">
+          <div className="active-details-head">
+            <div>
+              <p className="t-body-strong">
+                Your routine
+              </p>
+              <p className="t-small">
+                Keep the recurring plan clear for both of you.
               </p>
             </div>
           </div>
 
-          <div className="mt-16">
-            <Button onClick={() => go('chat')}>Open protected chat</Button>
-          </div>
+          <div className="active-detail-grid">
 
-          <div className="mt-12">
-            <Button variant="secondary" onClick={() => go('cancel')}>Cancel Tag</Button>
-          </div>
+            <div className="active-detail">
+              <span>Departure</span>
+              <strong>{departureLabel}</strong>
+            </div>
 
-          <div className="mt-12">
-            <Button variant="secondary" onClick={() => go('post-ride')}>
-              Continue journey flow
-            </Button>
-          </div>
+            <div className="active-detail">
+              <span>Arrival</span>
+              <strong>{arrivalLabel}</strong>
+            </div>
 
-          <div className="mt-12">
-            <Button variant="secondary" onClick={() => go('complete')}>
-              Complete Tag
-            </Button>
+            <div className="active-detail">
+              <span>Days</span>
+              <strong>{daysLabel}</strong>
+            </div>
+
+            <div className="active-detail">
+              <span>Community</span>
+              <strong>
+                {myCommute?.community || 'Tag community'}
+              </strong>
+            </div>
+
           </div>
         </section>
+
+        <section className="active-coordination-card">
+          <div className="active-coordination-icon">
+            <Icon name="message" />
+          </div>
+
+          <div className="active-coordination-copy">
+            <p className="t-body-strong">
+              Coordinate before you travel
+            </p>
+
+            <p className="t-small">
+              Keep updates, timing changes and commute details
+              inside your Tag connection.
+            </p>
+          </div>
+        </section>
+
+        <section className="section active-actions-section">
+          <Button onClick={() => go('chat')}>
+            Open chat
+          </Button>
+
+          <Button
+            variant="secondary"
+            onClick={() => go('complete')}
+          >
+            Complete Tag
+          </Button>
+        </section>
+
       </div>
     </main>
   )
 }
 
 function Chat({ go }) {
+  const [connection, setConnection] = useState(null)
+  const [otherProfile, setOtherProfile] = useState(null)
+  const [messages, setMessages] = useState([])
+  const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    let channel = null
+
+    const loadChat = async () => {
+      setLoading(true)
+      setError('')
+
+      try {
+        const connectionId =
+          sessionStorage.getItem('tag:selected-connection')
+
+        if (!connectionId) {
+          throw new Error('No active conversation selected.')
+        }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+
+        if (!user) {
+          throw new Error('Please sign in again.')
+        }
+
+        const { data: row, error: connectionError } =
+          await supabase
+            .from('commute_connections')
+            .select(`
+              id,
+              user_a,
+              user_b,
+              status
+            `)
+            .eq('id', connectionId)
+            .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+            .maybeSingle()
+
+        if (connectionError || !row) {
+          throw new Error(
+            connectionError?.message ||
+            'This conversation is unavailable.'
+          )
+        }
+
+        if (row.status !== 'active') {
+          throw new Error(
+            'This Tag conversation is no longer active.'
+          )
+        }
+
+        const otherUserId =
+          row.user_a === user.id
+            ? row.user_b
+            : row.user_a
+
+        const [profileResult, messagesResult] =
+          await Promise.all([
+            supabase
+              .from('profiles')
+              .select('id,display_name,avatar_url,bio')
+              .eq('id', otherUserId)
+              .maybeSingle(),
+
+            supabase
+              .from('messages')
+              .select('id,connection_id,sender_id,body,created_at')
+              .eq('connection_id', connectionId)
+              .order('created_at', { ascending: true }),
+          ])
+
+        if (profileResult.error) {
+          throw new Error(profileResult.error.message)
+        }
+
+        if (messagesResult.error) {
+          throw new Error(messagesResult.error.message)
+        }
+
+        if (!mounted) return
+
+        setConnection(row)
+        setCurrentUserId(user.id)
+        setOtherProfile(profileResult.data)
+        setMessages(messagesResult.data ?? [])
+
+        channel = supabase
+          .channel(`tag-chat-${connectionId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'messages',
+              filter: `connection_id=eq.${connectionId}`,
+            },
+            payload => {
+              if (!mounted) return
+
+              setMessages(current => {
+                if (
+                  current.some(
+                    item => item.id === payload.new.id
+                  )
+                ) {
+                  return current
+                }
+
+                return [...current, payload.new]
+              })
+            }
+          )
+          .subscribe()
+      } catch (err) {
+        console.error('CHAT LOAD FAILED:', err)
+
+        if (mounted) {
+          setError(
+            err?.message ||
+            'Could not load this conversation.'
+          )
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadChat()
+
+    return () => {
+      mounted = false
+
+      if (channel) {
+        supabase.removeChannel(channel)
+      }
+    }
+  }, [])
+
+  const sendMessage = async () => {
+    const body = message.trim()
+
+    if (!body || sending || !connection) {
+      return
+    }
+
+    setSending(true)
+    setError('')
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        throw new Error('Please sign in again.')
+      }
+
+      const { data, error: sendError } =
+        await supabase
+          .from('messages')
+          .insert({
+            connection_id: connection.id,
+            sender_id: user.id,
+            body,
+          })
+          .select('id,connection_id,sender_id,body,created_at')
+          .single()
+
+      if (sendError) {
+        throw new Error(sendError.message)
+      }
+
+      setMessages(current => {
+        if (current.some(item => item.id === data.id)) {
+          return current
+        }
+
+        return [...current, data]
+      })
+
+      setMessage('')
+    } catch (err) {
+      console.error('MESSAGE SEND FAILED:', err)
+
+      setError(
+        err?.message ||
+        'Could not send your message.'
+      )
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleKeyDown = event => {
+    if (
+      event.key === 'Enter' &&
+      !event.shiftKey
+    ) {
+      event.preventDefault()
+      sendMessage()
+    }
+  }
+
+  const name =
+    otherProfile?.display_name ||
+    'Tag commuter'
+
+  const avatarName = name.trim() || 'Tag commuter'
+
   return (
-    <main className="screen">
+    <main className="screen chat-screen">
       <Header
-        title="Aarav Sharma"
+        title={name}
         back
         onBack={() => go('active')}
-        right={<button className="icon-btn outline"><Icon name="shield" /></button>}
+        right={
+          <button
+            className="icon-btn outline"
+            aria-label="Conversation safety"
+            type="button"
+          >
+            <Icon name="shield" />
+          </button>
+        }
       />
 
-      <div className="screen-scroll" style={{ paddingBottom: 100 }}>
-        <section className="section">
-          <div className="empty-state" style={{ paddingTop: 30, paddingBottom: 30 }}>
-            <div className="empty-icon">
-              <Icon name="shield" />
+      <div className="chat-content">
+        <section className="chat-context">
+          <Avatar
+            name={avatarName}
+            src={otherProfile?.avatar_url}
+            size="md"
+          />
+
+          <div className="chat-context-copy">
+            <div className="chat-context-topline">
+              <span className="chat-online-dot" />
+              Active Tag connection
             </div>
-            <p className="t-body">
-              This is a protected Tag conversation.
-              Contact details are hidden unless you choose to share them.
+            <p>
+              Coordinate your recurring commute here.
             </p>
           </div>
+        </section>
 
-          <div className="stack-12">
-            <div className="card card-pad" style={{ width: '78%', marginLeft: 'auto' }}>
-              <p className="t-body">Hey, are you leaving around 6:30?</p>
-            </div>
-
-            <div className="card card-pad" style={{ width: '78%' }}>
-              <p className="t-body">Yes, I should be there. I'll update you here.</p>
-            </div>
+        <section className="chat-privacy">
+          <div className="chat-privacy-icon">
+            <Icon name="shield" />
+          </div>
+          <div>
+            <p className="t-body-strong">
+              Protected conversation
+            </p>
+            <p className="t-small">
+              Contact details stay private unless you choose to share them.
+            </p>
           </div>
         </section>
+
+        {loading && (
+          <section className="chat-state">
+            <div className="chat-loading-dot" />
+            <p>Loading conversation…</p>
+          </section>
+        )}
+
+        {error && (
+          <section className="chat-error" role="alert">
+            <Icon name="alert" />
+            <span>{error}</span>
+          </section>
+        )}
+
+        {!loading && !error && messages.length === 0 && (
+          <section className="chat-empty">
+            <div className="chat-empty-icon">
+              <Icon name="message" />
+            </div>
+            <h2>Start the conversation</h2>
+            <p>
+              Say hello and coordinate the next recurring commute.
+            </p>
+          </section>
+        )}
+
+        {!loading && !error && messages.length > 0 && (
+          <section className="chat-thread" aria-label="Messages">
+            {messages.map(item => {
+              const mine =
+                !!currentUserId &&
+                item.sender_id === currentUserId
+
+              return (
+                <div
+                  key={item.id}
+                  className={
+                    mine
+                      ? 'chat-message-row chat-message-row-mine'
+                      : 'chat-message-row chat-message-row-theirs'
+                  }
+                >
+                  {!mine && (
+                    <Avatar
+                      name={avatarName}
+                      src={otherProfile?.avatar_url}
+                      size="sm"
+                    />
+                  )}
+
+                  <div
+                    className={
+                      mine
+                        ? 'chat-message chat-message-mine'
+                        : 'chat-message chat-message-theirs'
+                    }
+                  >
+                    <p className="chat-message-body">
+                      {item.body}
+                    </p>
+
+                    <p className="chat-message-time">
+                      {new Date(
+                        item.created_at
+                      ).toLocaleTimeString([], {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </section>
+        )}
       </div>
 
-      <div style={{
-        position: 'absolute',
-        left: 16,
-        right: 16,
-        bottom: 16,
-        display: 'flex',
-        gap: 8,
-        zIndex: 20,
-      }}>
-        <input className="field" placeholder="Write a message..." />
-        <button className="icon-btn" style={{ background: '#121212', color: '#fff' }}>
-          <Icon name="arrow" />
-        </button>
+      <div className="chat-composer-wrap">
+        <div className="chat-composer">
+          <input
+            className="chat-composer-input"
+            aria-label="Message"
+            placeholder="Message..."
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={loading || sending || !connection}
+          />
+
+          <button
+            className="chat-send-button"
+            type="button"
+            aria-label={sending ? 'Sending message' : 'Send message'}
+            onClick={sendMessage}
+            disabled={
+              loading ||
+              sending ||
+              !connection ||
+              !message.trim()
+            }
+          >
+            <Icon name="arrow" />
+          </button>
+        </div>
+
+        <p className="chat-composer-hint">
+          Enter to send · Shift + Enter for a new line
+        </p>
       </div>
     </main>
   )
@@ -1631,32 +2440,544 @@ function Complete({ go }) {
 }
 
 function Tags({ go }) {
+  const [incoming, setIncoming] = useState([])
+  const [outgoing, setOutgoing] = useState([])
+  const [connections, setConnections] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState('')
+  const [userId, setUserId] = useState('')
+
+  const loadTags = async () => {
+    setLoading(true)
+    setError('')
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setUserId('')
+      setLoading(false)
+      setError('Please sign in again.')
+      return
+    }
+
+    setUserId(user.id)
+
+    const [
+      incomingResult,
+      outgoingResult,
+      connectionsResult,
+    ] = await Promise.all([
+      supabase
+        .from('commute_requests')
+        .select(`
+          id,
+          commute_id,
+          requester_id,
+          target_user_id,
+          status,
+          message,
+          created_at,
+          requester:profiles!commute_requests_requester_id_fkey (
+            display_name,
+            avatar_url,
+            bio
+          ),
+          target_commute:commutes!commute_requests_commute_id_fkey (
+            origin,
+            destination,
+            departure_time,
+            role
+          )
+        `)
+        .eq('target_user_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false }),
+
+      supabase
+        .from('commute_requests')
+        .select(`
+          id,
+          commute_id,
+          requester_id,
+          target_user_id,
+          status,
+          message,
+          created_at,
+          target:profiles!commute_requests_target_user_id_fkey (
+            display_name,
+            avatar_url,
+            bio
+          ),
+          target_commute:commutes!commute_requests_commute_id_fkey (
+            origin,
+            destination,
+            departure_time,
+            role
+          )
+        `)
+        .eq('requester_id', user.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false }),
+
+      supabase
+        .from('commute_connections')
+        .select(`
+          id,
+          commute_a_id,
+          commute_b_id,
+          user_a,
+          user_b,
+          status,
+          created_at,
+          profile_a:profiles!commute_connections_user_a_fkey (
+            id,
+            display_name,
+            avatar_url
+          ),
+          profile_b:profiles!commute_connections_user_b_fkey (
+            id,
+            display_name,
+            avatar_url
+          ),
+          commute_a:commutes!commute_connections_commute_a_id_fkey (
+            origin,
+            destination,
+            departure_time
+          ),
+          commute_b:commutes!commute_connections_commute_b_id_fkey (
+            origin,
+            destination,
+            departure_time
+          )
+        `)
+        .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false }),
+    ])
+
+    if (incomingResult.error || outgoingResult.error || connectionsResult.error) {
+      setError(
+        incomingResult.error?.message ||
+        outgoingResult.error?.message ||
+        connectionsResult.error?.message ||
+        'Could not load your Tags.'
+      )
+      setLoading(false)
+      return
+    }
+
+    setIncoming(incomingResult.data ?? [])
+    setOutgoing(outgoingResult.data ?? [])
+    setConnections(connectionsResult.data ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadTags()
+  }, [])
+
+  const acceptRequest = async request => {
+    if (busyId) return
+
+    setBusyId(request.id)
+    setError('')
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        throw new Error('Please sign in again.')
+      }
+
+      if (
+        !request?.requester_id ||
+        request.requester_id === user.id ||
+        request?.target_user_id !== user.id ||
+        request?.status !== 'pending'
+      ) {
+        throw new Error('This Tag request is no longer available.')
+      }
+
+      /*
+       * commute_id belongs to the TARGET user.
+       */
+      const { data: targetCommute, error: targetError } =
+        await supabase
+          .from('commutes')
+          .select('id,user_id,status')
+          .eq('id', request.commute_id)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle()
+
+      if (targetError || !targetCommute) {
+        throw new Error(
+          targetError?.message ||
+          'Your commute is no longer available.'
+        )
+      }
+
+      /*
+       * The requester has their own active commute.
+       */
+      const {
+        data: requesterCommute,
+        error: requesterError,
+      } = await supabase
+        .from('commutes')
+        .select('id,user_id,status')
+        .eq('user_id', request.requester_id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (requesterError || !requesterCommute) {
+        throw new Error(
+          requesterError?.message ||
+          'The requester’s active commute is no longer available.'
+        )
+      }
+
+      const requesterIsFirst =
+        request.requester_id < user.id
+
+      const userA = requesterIsFirst
+        ? request.requester_id
+        : user.id
+
+      const userB = requesterIsFirst
+        ? user.id
+        : request.requester_id
+
+      const commuteA = requesterIsFirst
+        ? requesterCommute.id
+        : targetCommute.id
+
+      const commuteB = requesterIsFirst
+        ? targetCommute.id
+        : requesterCommute.id
+
+      const {
+        data: existingConnection,
+        error: existingError,
+      } = await supabase
+        .from('commute_connections')
+        .select('id,status')
+        .or(
+          `and(user_a.eq.${userA},user_b.eq.${userB}),and(user_a.eq.${userB},user_b.eq.${userA})`
+        )
+        .limit(1)
+        .maybeSingle()
+
+      if (existingError) {
+        throw new Error(existingError.message)
+      }
+
+      if (!existingConnection) {
+        const { error: connectionError } =
+          await supabase
+            .from('commute_connections')
+            .insert({
+              commute_a_id: commuteA,
+              commute_b_id: commuteB,
+              user_a: userA,
+              user_b: userB,
+              status: 'active',
+            })
+
+        if (connectionError && connectionError.code !== '23505') {
+          throw new Error(connectionError.message)
+        }
+      }
+
+      const {
+        data: acceptedRequest,
+        error: requestError,
+      } = await supabase
+        .from('commute_requests')
+        .update({ status: 'accepted' })
+        .eq('id', request.id)
+        .eq('target_user_id', user.id)
+        .eq('status', 'pending')
+        .select('id,status')
+        .maybeSingle()
+
+      if (requestError) {
+        throw new Error(requestError.message)
+      }
+
+      if (!acceptedRequest) {
+        throw new Error('This Tag request was already handled.')
+      }
+
+      await supabase
+        .from('commute_requests')
+        .update({ status: 'cancelled' })
+        .eq('requester_id', user.id)
+        .eq('target_user_id', request.requester_id)
+        .eq('status', 'pending')
+
+      await loadTags()
+    } catch (error) {
+      console.error('ACCEPT TAG FAILED:', error)
+
+      setError(
+        error?.message ||
+        'Could not accept this Tag.'
+      )
+    } finally {
+      setBusyId('')
+    }
+  }
+
+  const rejectRequest = async request => {
+    if (busyId || !request?.id) return
+
+    setBusyId(request.id)
+    setError('')
+
+    const { error } = await supabase
+      .from('commute_requests')
+      .update({ status: 'rejected' })
+      .eq('id', request.id)
+      .eq('target_user_id', userId)
+      .eq('status', 'pending')
+
+    if (error) {
+      setError(error.message)
+      setBusyId('')
+      return
+    }
+
+    await loadTags()
+    setBusyId('')
+  }
+
   return (
     <main className="screen">
       <Header title="My Tags" />
 
       <div className="screen-scroll">
         <section className="section">
-          <div className="tabs">
-            <button className="tab active">Active</button>
-            <button className="tab">Upcoming</button>
-            <button className="tab">Completed</button>
-          </div>
 
-          <div className="stack-12 mt-20">
-            <button className="card card-pad" onClick={() => go('active')}>
-              <div className="row-between">
-                <div className="row" style={{ gap: 12 }}>
-                  <Avatar name="Aarav Sharma" size="sm" />
-                  <div>
-                    <p className="person-name">Aarav Sharma</p>
-                    <p className="person-meta">Patna → Danapur</p>
-                  </div>
-                </div>
-                <span className="badge success">Active</span>
+          {error && (
+            <small className="field-error-text">
+              {error}
+            </small>
+          )}
+
+          {loading && (
+            <p className="t-body">
+              Loading your Tags…
+            </p>
+          )}
+
+          {!loading && incoming.length > 0 && (
+            <>
+              <div className="section-head">
+                <h2 className="section-title">Requests for you</h2>
               </div>
-            </button>
-          </div>
+
+              <div className="stack-12 mt-12">
+                {incoming.map(request => {
+                  const person = request.requester ?? {}
+                  const commute = request.target_commute ?? {}
+
+                  return (
+                    <div className="card card-pad" key={request.id}>
+                      <div className="row-between">
+                        <div className="row" style={{ gap: 12 }}>
+                          <Avatar
+                            name={person.display_name || 'Tag commuter'}
+                            src={person.avatar_url}
+                            size="sm"
+                          />
+
+                          <div>
+                            <p className="person-name">
+                              {person.display_name || 'Tag commuter'}
+                            </p>
+
+                            <p className="person-meta">
+                              {commute.origin || 'Origin'} → {commute.destination || 'Destination'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="badge">
+                          Request
+                        </span>
+                      </div>
+
+                      <div className="row mt-12" style={{ gap: 8 }}>
+                        <Button
+                          onClick={() => acceptRequest(request)}
+                          disabled={busyId === request.id}
+                        >
+                          {busyId === request.id ? 'Working…' : 'Accept'}
+                        </Button>
+
+                        <Button
+                          variant="secondary"
+                          onClick={() => rejectRequest(request)}
+                          disabled={busyId === request.id}
+                        >
+                          Decline
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {!loading && connections.length > 0 && (
+            <>
+              <div className="section-head mt-24">
+                <h2 className="section-title">Active Tags</h2>
+              </div>
+
+              <div className="stack-12 mt-12">
+                {connections.map(connection => {
+                  const iAmA = connection.user_a === userId
+                  const otherProfile = iAmA
+                    ? (connection.profile_b ?? {})
+                    : (connection.profile_a ?? {})
+                  const myCommute = iAmA
+                    ? (connection.commute_a ?? {})
+                    : (connection.commute_b ?? {})
+
+                  const otherName =
+                    otherProfile.display_name || 'Tag commuter'
+
+                  const route =
+                    myCommute.origin && myCommute.destination
+                      ? myCommute.origin + ' → ' + myCommute.destination
+                      : 'Recurring commute'
+
+                  return (
+                    <button
+                      className="card card-pad active-connection-card"
+                      key={connection.id}
+                      onClick={() => {
+                        sessionStorage.setItem(
+                          'tag:selected-connection',
+                          connection.id
+                        )
+                        go('active')
+                      }}
+                    >
+                      <div className="row-between">
+                        <div className="row" style={{ gap: 12, minWidth: 0 }}>
+                          <Avatar
+                            name={otherName}
+                            src={otherProfile.avatar_url}
+                            size="sm"
+                          />
+
+                          <div style={{ minWidth: 0 }}>
+                            <p className="person-name">
+                              {otherName}
+                            </p>
+
+                            <p className="person-meta active-connection-route">
+                              {route}
+                            </p>
+
+                            {myCommute.departure_time && (
+                              <p className="t-small active-connection-time">
+                                Usually leaves around {formatCommuteTime(myCommute.departure_time)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <span className="badge success">
+                          Active
+                        </span>
+                      </div>
+
+                      <div className="active-connection-footer">
+                        <span>Recurring commute</span>
+                        <span>View connection →</span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {!loading && outgoing.length > 0 && (
+            <>
+              <div className="section-head mt-24">
+                <h2 className="section-title">Requests sent</h2>
+              </div>
+
+              <div className="stack-12 mt-12">
+                {outgoing.map(request => {
+                  const person = request.target ?? {}
+                  const commute = request.target_commute ?? {}
+
+                  return (
+                    <div className="card card-pad" key={request.id}>
+                      <div className="row-between">
+                        <div className="row" style={{ gap: 12 }}>
+                          <Avatar
+                            name={person.display_name || 'Tag commuter'}
+                            src={person.avatar_url}
+                            size="sm"
+                          />
+
+                          <div>
+                            <p className="person-name">
+                              {person.display_name || 'Tag commuter'}
+                            </p>
+
+                            <p className="person-meta">
+                              {commute.origin || 'Origin'} → {commute.destination || 'Destination'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="badge">
+                          Pending
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {!loading &&
+            incoming.length === 0 &&
+            outgoing.length === 0 &&
+            connections.length === 0 && (
+              <div className="card card-pad">
+                <p className="t-body-strong">
+                  No Tags yet
+                </p>
+                <p className="t-small mt-4">
+                  Find someone travelling your way and send them a request.
+                </p>
+
+                <div className="mt-16">
+                  <Button onClick={() => go('discover')}>
+                    Discover commuters
+                  </Button>
+                </div>
+              </div>
+            )}
+
         </section>
       </div>
 
@@ -1665,91 +2986,530 @@ function Tags({ go }) {
   )
 }
 
+
+
 function Match({ go }) {
+  const [selected, setSelected] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [requestState, setRequestState] = useState('idle')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('tag:selected-commute')
+
+      if (!raw) {
+        setLoading(false)
+        setError('This match is no longer available.')
+        return
+      }
+
+      const parsed = JSON.parse(raw)
+      setSelected(parsed)
+      setLoading(false)
+    } catch (err) {
+      console.error('Selected commute load failed:', err)
+      setError('Could not open this match.')
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selected?.commute?.id) return
+
+    const checkRequest = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) return
+
+      const { data } = await supabase
+        .from('commute_requests')
+        .select('id,status')
+        .eq('commute_id', selected.commute.id)
+        .eq('requester_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (data?.status === 'pending') {
+        setRequestState('pending')
+      } else if (data?.status === 'accepted') {
+        setRequestState('accepted')
+      } else {
+        setRequestState('idle')
+      }
+    }
+
+    checkRequest()
+  }, [selected])
+
+  const sendRequest = async () => {
+    if (
+      !selected?.commute?.id ||
+      requestState === 'pending' ||
+      requestState === 'sending' ||
+      requestState === 'accepted'
+    ) return
+
+    setRequestState('sending')
+    setError('')
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setError('Please sign in again.')
+      setRequestState('idle')
+      return
+    }
+
+    const targetCommute = selected.commute
+
+    if (targetCommute.user_id === user.id) {
+      setError('You cannot request your own commute.')
+      setRequestState('idle')
+      return
+    }
+
+    const {
+      data: existingRequest,
+      error: existingRequestError,
+    } = await supabase
+      .from('commute_requests')
+      .select('id,status')
+      .eq('commute_id', targetCommute.id)
+      .eq('requester_id', user.id)
+      .eq('target_user_id', targetCommute.user_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (existingRequestError) {
+      setError(existingRequestError.message)
+      setRequestState('idle')
+      return
+    }
+
+    if (existingRequest?.status === 'pending') {
+      setRequestState('pending')
+      return
+    }
+
+    if (existingRequest?.status === 'accepted') {
+      setRequestState('accepted')
+      return
+    }
+
+    const { error: requestError } = await supabase
+      .from('commute_requests')
+      .insert({
+        commute_id: targetCommute.id,
+        requester_id: user.id,
+        target_user_id: targetCommute.user_id,
+        status: 'pending',
+        message: 'I think our recurring journeys could work well together.',
+      })
+
+    if (requestError) {
+      if (requestError.code === '23505') {
+        setRequestState('pending')
+      } else {
+        setError(requestError.message)
+        setRequestState('idle')
+      }
+      return
+    }
+
+    setRequestState('pending')
+  }
+
+  if (loading) {
+    return (
+      <main className="screen">
+        <Header
+          title="Journey match"
+          back
+          onBack={() => go('discover')}
+        />
+        <section className="section">
+          <p className="t-body">Opening match…</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (error && !selected) {
+    return (
+      <main className="screen">
+        <Header
+          title="Journey match"
+          back
+          onBack={() => go('discover')}
+        />
+        <section className="section">
+          <p className="field-error-text">{error}</p>
+          <div className="mt-16">
+            <Button onClick={() => go('discover')}>
+              Back to discover
+            </Button>
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  const commute = selected?.commute ?? {}
+  const profile = commute.profiles ?? {}
+  const name = profile.display_name || 'Tag commuter'
+  const score = selected?.match_score ?? 50
+
   return (
     <main className="screen">
 
       <Header
         title="Journey match"
         back
-        onBack={() => go('home')}
+        onBack={() => go('discover')}
       />
 
-      <section className="section">
+      <div className="screen-scroll">
+        <section className="section">
 
-        <div className="match-hero">
-          <Avatar name="Aarav Sharma" size="lg" />
+          <div className="match-hero">
+            <Avatar
+              name={name}
+              src={profile.avatar_url}
+              size="lg"
+            />
 
-          <div>
-            <p className="t-small">92% ROUTE MATCH</p>
-            <h1>Aarav Sharma</h1>
-            <p>Patna → Danapur</p>
-          </div>
-        </div>
+            <div>
+              <p className="t-small">
+                {score}% ROUTE MATCH
+              </p>
 
-        <div className="match-card mt-24">
+              <h1>{name}</h1>
 
-          <div className="match-row">
-            <span>Journey</span>
-            <strong>Patna → Danapur</strong>
-          </div>
-
-          <div className="match-row">
-            <span>Shared route</span>
-            <strong>Most of the way</strong>
-          </div>
-
-          <div className="match-row">
-            <span>Trust</span>
-            <strong>Verified Tag member</strong>
+              <p>
+                {formatCommuteRoute(commute)}
+              </p>
+            </div>
           </div>
 
-        </div>
+          <div className="match-card mt-24">
 
-        <div className="stack-12 mt-24">
+            <div className="match-row">
+              <span>Journey</span>
+              <strong>
+                {formatCommuteRoute(commute)}
+              </strong>
+            </div>
 
-          <Button onClick={() => go('chat')}>
-            Message Aarav
-          </Button>
+            <div className="match-row">
+              <span>Role</span>
+              <strong>
+                {commute.role === 'driver'
+                  ? 'Driver'
+                  : commute.role === 'rider'
+                    ? 'Rider'
+                    : 'Open to either'}
+              </strong>
+            </div>
 
-          <Button
-            variant="secondary"
-            onClick={() => go('home')}
-          >
-            Back to home
-          </Button>
+            <div className="match-row">
+              <span>Departure</span>
+              <strong>
+                {commute.departure_time
+                  ? formatCommuteTime(commute.departure_time)
+                  : 'Flexible'}
+              </strong>
+            </div>
 
-        </div>
+            <div className="match-row">
+              <span>Trust</span>
+              <strong>Tag member</strong>
+            </div>
 
-      </section>
+          </div>
+
+          {error && (
+            <small className="field-error-text">
+              {error}
+            </small>
+          )}
+
+          <div className="stack-12 mt-24">
+
+            {requestState === 'pending' ? (
+              <Button disabled>
+                Request sent
+              </Button>
+            ) : requestState === 'accepted' ? (
+              <Button onClick={() => go('tags')}>
+                Tag active
+              </Button>
+            ) : (
+              <Button
+                onClick={sendRequest}
+                disabled={requestState === 'sending'}
+              >
+                {requestState === 'sending'
+                  ? 'Sending…'
+                  : 'Request to connect'}
+              </Button>
+            )}
+
+            <Button
+              variant="secondary"
+              onClick={() => go('discover')}
+            >
+              Back to discover
+            </Button>
+
+          </div>
+
+        </section>
+      </div>
     </main>
   )
 }
 
+
+
 function Activity({ go }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadActivity = async () => {
+      setLoading(true)
+      setError('')
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        if (mounted) {
+          setLoading(false)
+          setError('Please sign in again.')
+        }
+        return
+      }
+
+      const [incoming, outgoing, connections] = await Promise.all([
+        supabase
+          .from('commute_requests')
+          .select(`
+            id,
+            status,
+            created_at,
+            requester_id,
+            requester:profiles!commute_requests_requester_id_fkey (
+              display_name
+            )
+          `)
+          .eq('target_user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+
+        supabase
+          .from('commute_requests')
+          .select(`
+            id,
+            status,
+            created_at,
+            target_user_id,
+            target:profiles!commute_requests_target_user_id_fkey (
+              display_name
+            )
+          `)
+          .eq('requester_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+
+        supabase
+          .from('commute_connections')
+          .select('id,status,created_at,user_a,user_b')
+          .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
+
+      if (!mounted) return
+
+      if (incoming.error || outgoing.error || connections.error) {
+        setError(
+          incoming.error?.message ||
+          outgoing.error?.message ||
+          connections.error?.message ||
+          'Could not load activity.'
+        )
+        setLoading(false)
+        return
+      }
+
+      const activity = [
+        ...(incoming.data ?? []).map(item => ({
+          id: `incoming-${item.id}`,
+          type: item.status === 'accepted'
+            ? 'success'
+            : item.status === 'pending'
+              ? 'request'
+              : 'neutral',
+          title:
+            item.status === 'accepted'
+              ? 'Tag request accepted'
+              : item.status === 'pending'
+                ? 'New Tag request'
+                : `Tag request ${item.status}`,
+          body:
+            item.status === 'accepted'
+              ? `${item.requester?.display_name || 'A commuter'} is now connected with you.`
+              : `${item.requester?.display_name || 'A commuter'} wants to connect for a recurring commute.`,
+          created_at: item.created_at,
+        })),
+
+        ...(outgoing.data ?? []).map(item => ({
+          id: `outgoing-${item.id}`,
+          type: item.status === 'accepted'
+            ? 'success'
+            : item.status === 'pending'
+              ? 'request'
+              : 'neutral',
+          title:
+            item.status === 'accepted'
+              ? 'Your Tag request was accepted'
+              : item.status === 'pending'
+                ? 'Tag request sent'
+                : `Tag request ${item.status}`,
+          body:
+            item.status === 'accepted'
+              ? `${item.target?.display_name || 'Your match'} accepted your commute request.`
+              : `Your recurring commute request is ${item.status}.`,
+          created_at: item.created_at,
+        })),
+
+        ...(connections.data ?? []).map(item => ({
+          id: `connection-${item.id}`,
+          type: 'connection',
+          title: 'Recurring Tag active',
+          body: 'You have an active recurring commute connection.',
+          created_at: item.created_at,
+        })),
+      ]
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 30)
+
+      setItems(activity)
+      setLoading(false)
+    }
+
+    loadActivity()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const relativeTime = value => {
+    const diff = Math.max(0, Date.now() - new Date(value).getTime())
+    const minutes = Math.floor(diff / 60000)
+
+    if (minutes < 1) return 'Just now'
+    if (minutes < 60) return `${minutes} min ago`
+
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return `${hours}h ago`
+
+    const days = Math.floor(hours / 24)
+    if (days === 1) return 'Yesterday'
+    if (days < 7) return `${days} days ago`
+
+    return new Date(value).toLocaleDateString()
+  }
+
   return (
-    <main className="screen">
+    <main className="screen activity-screen">
       <Header title="Activity" />
 
       <div className="screen-scroll">
-        <section className="section">
-          <div className="stack-12">
-            {[
-              ['Tag request accepted', 'Aarav Sharma accepted your request.', '2 min ago'],
-              ['Journey completed', 'Your previous Tag was completed.', 'Yesterday'],
-              ['New match', 'You have a new journey match.', '2 days ago'],
-            ].map(([title, body, time]) => (
-              <div className="card card-pad" key={title}>
-                <div className="row-between">
-                  <div>
-                    <p className="t-body-strong">{title}</p>
-                    <p className="t-small mt-4">{body}</p>
-                  </div>
-                  <p className="t-small">{time}</p>
-                </div>
-              </div>
-            ))}
+        <section className="section activity-section">
+          <div className="activity-intro">
+            <p className="activity-eyebrow">YOUR ACTIVITY</p>
+            <h1 className="activity-title">Stay in the loop</h1>
+            <p className="activity-subtitle">
+              Requests, connections and recurring Tags in one place.
+            </p>
           </div>
+
+          {error && (
+            <div className="activity-state activity-error">
+              <Icon name="close" size={18} />
+              <div>
+                <strong>Couldn’t load activity</strong>
+                <p>{error}</p>
+              </div>
+            </div>
+          )}
+
+          {loading && (
+            <div className="activity-state">
+              <div className="activity-loading-dot" />
+              <p>Loading your activity…</p>
+            </div>
+          )}
+
+          {!loading && !error && items.length === 0 && (
+            <div className="activity-empty">
+              <div className="activity-empty-icon">
+                <Icon name="activity" size={24} />
+              </div>
+
+              <h2>Nothing here yet</h2>
+              <p>Your requests and recurring Tags will appear here.</p>
+
+              <Button onClick={() => go('discover')}>
+                Find a commuter
+              </Button>
+            </div>
+          )}
+
+          {!loading && !error && items.length > 0 && (
+            <div className="activity-list">
+              {items.map(item => (
+                <article className="activity-item" key={item.id}>
+                  <div className={`activity-item-icon activity-item-icon-${item.type}`}>
+                    <Icon
+                      name={
+                        item.type === 'connection'
+                          ? 'heart'
+                          : item.type === 'success'
+                            ? 'check'
+                            : item.type === 'request'
+                              ? 'tag'
+                              : 'activity'
+                      }
+                      size={17}
+                    />
+                  </div>
+
+                  <div className="activity-item-content">
+                    <div className="activity-item-top">
+                      <h2>{item.title}</h2>
+                      <time>{relativeTime(item.created_at)}</time>
+                    </div>
+                    <p>{item.body}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
@@ -1758,58 +3518,175 @@ function Activity({ go }) {
   )
 }
 
-function Profile({ go }) {
-  return (
-    <main className="screen">
 
+
+function Profile({ go }) {
+  const [profile, setProfile] = useState(null)
+  const [commute, setCommute] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+
+    const loadProfile = async () => {
+      setLoading(true)
+      setError('')
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        if (mounted) {
+          setLoading(false)
+          setError('Please sign in again.')
+        }
+        return
+      }
+
+      const [profileResult, commuteResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, display_name, username, avatar_url, phone, bio, created_at')
+          .eq('id', user.id)
+          .maybeSingle(),
+
+        supabase
+          .from('commutes')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ])
+
+      if (!mounted) return
+
+      if (profileResult.error) {
+        setError(profileResult.error.message)
+      } else {
+        setProfile(profileResult.data)
+      }
+
+      if (!commuteResult.error) {
+        setCommute(commuteResult.data)
+      }
+
+      setLoading(false)
+    }
+
+    loadProfile()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const name = profile?.display_name || 'Tag User'
+  const bio = profile?.bio?.trim()
+  const memberYear = profile?.created_at
+    ? new Date(profile.created_at).getFullYear()
+    : new Date().getFullYear()
+
+  return (
+    <main className="screen profile-screen">
       <Header
         title="Profile"
         back
         onBack={() => go('home')}
       />
 
-      <div className="screen-scroll profile-hub">
+      <div className="screen-scroll profile-scroll">
+        <section className="profile-hero">
+          <div className="profile-avatar-wrap">
+            <Avatar
+              name={name}
+              src={profile?.avatar_url}
+              size="lg"
+            />
+            <span className="profile-online-dot" />
+          </div>
 
-        <section className="profile-head">
-          <Avatar name="Mohnish Raj" size="lg" />
-
-          <div>
-            <h2 className="profile-name">
-              Mohnish Raj
-            </h2>
+          <div className="profile-hero-copy">
+            <p className="profile-eyebrow">YOUR TAG PROFILE</p>
+            <h1 className="profile-name">
+              {loading ? 'Loading…' : name}
+            </h1>
 
             <p className="profile-bio">
-              Patna · Member since 2026
+              {loading
+                ? 'Loading your profile'
+                : bio || (
+                    commute
+                      ? formatCommuteRoute(commute)
+                      : `Member since ${memberYear}`
+                  )}
             </p>
           </div>
         </section>
 
+        {error && (
+          <section className="section compact">
+            <div className="profile-error">
+              <Icon name="close" size={17} />
+              <span>{error}</span>
+            </div>
+          </section>
+        )}
+
         <section className="section compact">
           <div className="profile-trust-card">
-            <div>
-              <p className="t-small">TRUST</p>
-              <p className="t-heading mt-4">
-                New member
+            <div className="profile-trust-copy">
+              <p className="profile-card-label">TRUST</p>
+              <p className="profile-card-title">New member</p>
+              <p className="profile-card-subtitle">
+                Keep showing up to build your Tag history.
               </p>
             </div>
 
-            <Icon name="shield" />
+            <div className="profile-trust-icon">
+              <Icon name="shield" size={22} />
+            </div>
           </div>
         </section>
 
-        <section className="section profile-group">
-          <p className="profile-group-title">
-            ACCOUNT
-          </p>
+        {commute && (
+          <section className="section compact">
+            <div className="profile-commute-card">
+              <div className="profile-commute-head">
+                <div>
+                  <p className="profile-card-label">ACTIVE COMMUTE</p>
+                  <h2>{formatCommuteRoute(commute)}</h2>
+                </div>
+                <span className="profile-active-pill">Active</span>
+              </div>
 
-          <div className="stack-8">
+              <div className="profile-commute-meta">
+                <span>{commute.departure_time || 'Flexible'}</span>
+                <span>•</span>
+                <span>
+                  {commute.role === 'driver'
+                    ? 'Driver'
+                    : commute.role === 'rider'
+                      ? 'Rider'
+                      : 'Either'}
+                </span>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="section profile-group">
+          <p className="profile-group-title">ACCOUNT</p>
+          <div className="profile-list">
             <AccountRow
               icon="user"
               title="Edit profile"
               subtitle="Update your personal details"
               onClick={() => go('profile-setup')}
             />
-
             <AccountRow
               icon="shield"
               title="Password"
@@ -1820,18 +3697,14 @@ function Profile({ go }) {
         </section>
 
         <section className="section profile-group">
-          <p className="profile-group-title">
-            JOURNEYS
-          </p>
-
-          <div className="stack-8">
+          <p className="profile-group-title">JOURNEYS</p>
+          <div className="profile-list">
             <AccountRow
               icon="heart"
               title="Favourite"
               subtitle="People you want to reconnect with"
               onClick={() => go('favourite')}
             />
-
             <AccountRow
               icon="clock"
               title="History"
@@ -1842,18 +3715,14 @@ function Profile({ go }) {
         </section>
 
         <section className="section profile-group">
-          <p className="profile-group-title">
-            MONEY & REWARDS
-          </p>
-
-          <div className="stack-8">
+          <p className="profile-group-title">MONEY & REWARDS</p>
+          <div className="profile-list">
             <AccountRow
               icon="wallet"
               title="Wallet"
               subtitle="Manage your Tag balance"
               onClick={() => go('wallet')}
             />
-
             <AccountRow
               icon="tag"
               title="Offers"
@@ -1864,18 +3733,14 @@ function Profile({ go }) {
         </section>
 
         <section className="section profile-group">
-          <p className="profile-group-title">
-            PREFERENCES
-          </p>
-
-          <div className="stack-8">
+          <p className="profile-group-title">PREFERENCES</p>
+          <div className="profile-list">
             <AccountRow
               icon="more"
               title="Language"
               subtitle="Choose your preferred language"
               onClick={() => go('language')}
             />
-
             <AccountRow
               icon="shield"
               title="Privacy"
@@ -1886,18 +3751,14 @@ function Profile({ go }) {
         </section>
 
         <section className="section profile-group">
-          <p className="profile-group-title">
-            HELP
-          </p>
-
-          <div className="stack-8">
+          <p className="profile-group-title">HELP</p>
+          <div className="profile-list">
             <AccountRow
               icon="chat"
               title="Help & Support"
               subtitle="Find answers or contact support"
               onClick={() => go('help')}
             />
-
             <AccountRow
               icon="chat"
               title="Contact Tag"
@@ -1915,7 +3776,6 @@ function Profile({ go }) {
             onClick={() => go('delete-account')}
           />
         </section>
-
       </div>
     </main>
   )
@@ -2825,10 +4685,70 @@ function ContactUs({ go }) {
 
 function DeleteAccount({ go }) {
   const [confirm, setConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  const deleteAccount = async () => {
+    if (!confirm || deleting) return
+
+    setDeleting(true)
+    setError('')
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        throw new Error(
+          'Your session has expired. Please sign in again.'
+        )
+      }
+
+      const { data, error: functionError } =
+        await supabase.functions.invoke(
+          'delete-account',
+          {
+            body: {},
+          }
+        )
+
+      if (functionError) {
+        throw new Error(functionError.message)
+      }
+
+      if (!data?.success) {
+        throw new Error(
+          data?.error ||
+          'Account deletion failed.'
+        )
+      }
+
+      await supabase.auth.signOut()
+
+      sessionStorage.clear()
+      localStorage.removeItem('tag:selected-commute')
+
+      go('intro')
+    } catch (error) {
+      console.error('DELETE ACCOUNT FAILED:', error)
+
+      setError(
+        error?.message ||
+        'Could not delete your account. Please try again.'
+      )
+
+      setDeleting(false)
+    }
+  }
 
   return (
     <main className="screen">
-      <Header title="Delete Account" back onBack={() => go('settings')} />
+      <Header
+        title="Delete Account"
+        back
+        onBack={() => go('settings')}
+      />
 
       <div className="screen-scroll">
         <section className="section">
@@ -2838,11 +4758,12 @@ function DeleteAccount({ go }) {
             </div>
 
             <p className="t-small">ACCOUNT</p>
+
             <h1>Delete your account?</h1>
 
             <p>
-              This action is permanent. Your account and associated Tag
-              information may no longer be available after deletion.
+              This permanently deletes your Tag account and
+              associated profile, commute, request and connection data.
             </p>
           </div>
         </section>
@@ -2853,26 +4774,36 @@ function DeleteAccount({ go }) {
               type="checkbox"
               checked={confirm}
               onChange={e => setConfirm(e.target.checked)}
+              disabled={deleting}
             />
-            <span>I understand that this action cannot be undone.</span>
+
+            <span>
+              I understand that this action cannot be undone.
+            </span>
           </label>
+
+          {error && (
+            <small className="field-error-text mt-12">
+              {error}
+            </small>
+          )}
         </section>
 
         <section className="section">
           <Button
             variant="secondary"
-            onClick={() => {
-              if (confirm) go('intro')
-            }}
+            onClick={deleteAccount}
+            disabled={!confirm || deleting}
           >
-            Delete account
+            {deleting
+              ? 'Deleting account…'
+              : 'Delete account'}
           </Button>
         </section>
       </div>
     </main>
   )
 }
-
 
 function HelpSupport({ go }) {
   const [open, setOpen] = useState(null)
@@ -3084,7 +5015,7 @@ function ConfirmAddress({ go }) {
           </span>
         </div>
 
-        <Primary onClick={() => go('ride')}>
+        <Primary onClick={() => go('discover')}>
           Confirm location
         </Primary>
 
@@ -3641,8 +5572,170 @@ function LightMode({ go }) {
 
 function App() {
   const [page, setPage] = useState('intro')
+  const [session, setSession] = useState(undefined)
+  const [profileReady, setProfileReady] = useState(false)
 
   const go = next => setPage(next)
+
+  useEffect(() => {
+    let mounted = true
+
+    const syncProfileRoute = async currentSession => {
+      if (!mounted) return
+
+      if (!currentSession) {
+        setSession(null)
+        setProfileReady(true)
+        setPage('intro')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id,onboarding_completed')
+        .eq('id', currentSession.user.id)
+        .maybeSingle()
+
+      if (!mounted) return
+
+      setSession(currentSession)
+
+      if (error) {
+        console.error('Profile lookup failed:', error)
+        setProfileReady(true)
+        setPage('profile-setup')
+        return
+      }
+
+      if (!data || !data.onboarding_completed) {
+        setPage('profile-setup')
+      } else {
+        setPage('home')
+      }
+
+      setProfileReady(true)
+    }
+
+    const bootstrapAuth = async () => {
+      try {
+        /*
+         * OAuth callbacks can briefly arrive before the auth state
+         * listener has emitted the final session. Do not route to
+         * intro while an OAuth callback is still being processed.
+         */
+        const url = new URL(window.location.href)
+        const code = url.searchParams.get('code')
+
+        if (code) {
+          const { data, error } =
+            await supabase.auth.exchangeCodeForSession(code)
+
+          if (error) {
+            console.error('OAuth code exchange failed:', error)
+            if (mounted) {
+              setSession(null)
+              setProfileReady(true)
+              setPage('intro')
+            }
+            return
+          }
+
+          if (data.session) {
+            window.history.replaceState(
+              {},
+              document.title,
+              url.pathname + url.hash
+            )
+
+            await syncProfileRoute(data.session)
+            return
+          }
+        }
+
+        const {
+          data: { session: currentSession },
+          error,
+        } = await supabase.auth.getSession()
+
+        if (!mounted) return
+
+        if (error) {
+          console.error('Session lookup failed:', error)
+          setSession(null)
+          setProfileReady(true)
+          setPage('intro')
+          return
+        }
+
+        await syncProfileRoute(currentSession ?? null)
+      } catch (error) {
+        console.error('Auth bootstrap failed:', error)
+
+        if (mounted) {
+          setSession(null)
+          setProfileReady(true)
+          setPage('intro')
+        }
+      }
+    }
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted) return
+
+      /*
+       * Ignore a transient null event while an OAuth callback URL
+       * is present. bootstrapAuth() owns that callback.
+       */
+      const hasOAuthCode =
+        new URL(window.location.href).searchParams.has('code')
+
+      if (!nextSession && hasOAuthCode) return
+
+      if (nextSession) {
+        setSession(nextSession)
+
+        setTimeout(() => {
+          if (mounted) {
+            syncProfileRoute(nextSession)
+          }
+        }, 0)
+
+        return
+      }
+
+      setSession(null)
+      setProfileReady(true)
+      setPage('intro')
+    })
+
+    bootstrapAuth()
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+
+  if (session === undefined || !profileReady) {
+    return (
+      <main className="screen">
+        <section className="section">
+          <div className="stack-24">
+            <Logo />
+            <div>
+              <h2 className="t-title">Loading Tag…</h2>
+              <p className="t-body mt-8">
+                Getting your account ready.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+    )
+  }
 
   let screen
 
@@ -3689,12 +5782,6 @@ function App() {
     case 'location':
       screen = <Location go={go} />
       break
-    case 'ride':
-      screen = <RideFlow go={go} />
-      break
-    case 'post-ride':
-      screen = <PostRideFlow go={go} />
-      break
     case 'match':
       screen = <Match go={go} />
       break
@@ -3705,7 +5792,7 @@ function App() {
       screen = <Chat go={go} />
       break
     case 'complete':
-      screen = <Complete go={go} />
+      screen = <Home go={go} />
       break
     case 'tags':
       screen = <Tags go={go} />
@@ -3756,10 +5843,10 @@ function App() {
       screen = <SearchScreen go={go} />
       break
     case 'cancel':
-      screen = <CancelRide go={go} />
+      screen = <Home go={go} />
       break
     case 'cancelled':
-      screen = <Cancelled go={go} />
+      screen = <Home go={go} />
       break
     case 'redirect-home':
       screen = <RedirectHome go={go} />

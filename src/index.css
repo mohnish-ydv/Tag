@@ -7642,3 +7642,2714 @@ textarea.field{
 .match-row strong {
   text-align: right;
 }
+
+/* ─────────────────────────────────────────
+   Tag — recurring connection cards
+   ───────────────────────────────────────── */
+
+.active-connection-card {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.active-connection-card:hover {
+  transform: translateY(-1px);
+}
+
+.active-connection-card:active {
+  transform: scale(0.99);
+}
+
+.active-connection-route {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+.active-connection-time {
+  margin-top: 5px;
+}
+
+.active-connection-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(20, 30, 45, 0.08);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.active-connection-footer span:last-child {
+  opacity: 0.7;
+}
+
+
+/* =========================================================
+   TAG — TASK 1 VISUAL FOUNDATION
+   Shared visual language inspired by the approved reference.
+   Product behavior/layout remains unchanged.
+   ========================================================= */
+
+:root {
+  /* Core palette */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f6f8;
+
+  --text: #1a1a1a;
+  --text-2: #414141;
+  --muted: #8a8d93;
+
+  --line: #e0e0e0;
+  --line-dark: #d2d4d7;
+
+  /* Tag primary */
+  --accent: #2bba58;
+  --accent-strong: #229b48;
+  --accent-soft: #e8f7ed;
+
+  --success: #2bba58;
+  --danger: #ff3b30;
+  --warning: #edaa10;
+
+  /* Geometry */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --pill: 999px;
+
+  /* Elevation */
+  --shadow: 0 2px 10px rgba(20, 30, 45, 0.06);
+  --shadow-lg: 0 10px 30px rgba(20, 30, 45, 0.10);
+
+  /* Layout */
+  --nav-h: 76px;
+  --screen-pad: 16px;
+  --content-max: 560px;
+
+  /* Consistent spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+}
+
+/* ---------- BASE ---------- */
+
+html,
+body,
+#root {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: Inter, Poppins, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* ---------- SHARED TEXT ---------- */
+
+.t-display {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.t-title {
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.t-body {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.t-small {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.t-label {
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* ---------- BUTTON FOUNDATION ---------- */
+
+.btn {
+  min-height: 50px;
+  border-radius: var(--pill);
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 650;
+  border: 1px solid transparent;
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.btn:active {
+  transform: scale(0.985);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
+.btn-secondary,
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+.btn-secondary:hover,
+.btn-ghost:hover {
+  background: var(--surface-2);
+}
+
+.btn-sm {
+  min-height: 42px;
+  padding-inline: 16px;
+  font-size: 14px;
+}
+
+/* ---------- FORM FOUNDATION ---------- */
+
+.field,
+input.field,
+textarea.field,
+select.field {
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  color: var(--text);
+  padding-inline: 14px;
+  outline: none;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.field:focus,
+input.field:focus,
+textarea.field:focus,
+select.field:focus {
+  background: var(--surface);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(43, 186, 88, 0.12);
+}
+
+.field::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+/* ---------- CARD FOUNDATION ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
+
+.card-pad {
+  padding: 16px;
+}
+
+/* ---------- BADGES / STATUS ---------- */
+
+.badge {
+  border-radius: var(--pill);
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+  padding: 7px 10px;
+}
+
+.badge.success {
+  background: var(--accent-soft);
+  color: #247a43;
+}
+
+/* ---------- CHIPS ---------- */
+
+.chip {
+  min-height: 36px;
+  border-radius: var(--pill);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-2);
+  padding: 0 14px;
+}
+
+.chip.active,
+.chip.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: #247a43;
+}
+
+/* ---------- ICON BUTTONS ---------- */
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.icon-btn:active {
+  transform: scale(0.96);
+}
+
+/* ---------- HEADER ---------- */
+
+.header {
+  min-height: 60px;
+  padding: 10px var(--screen-pad);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.header-title {
+  font-size: 19px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* ---------- BOTTOM NAV ---------- */
+
+.bottom-nav {
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -4px 18px rgba(20, 30, 45, 0.04);
+  backdrop-filter: blur(12px);
+}
+
+.nav-item {
+  color: var(--muted);
+}
+
+.nav-item.active {
+  color: var(--accent);
+}
+
+/* ---------- COMMON STATES ---------- */
+
+.loading-state,
+.empty-state,
+.error-state {
+  border-radius: var(--radius-lg);
+  padding: 20px 16px;
+}
+
+.empty-state {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.error-state {
+  background: #fff4f3;
+  color: var(--danger);
+}
+
+/* ---------- ACCESSIBILITY ---------- */
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(43, 186, 88, 0.25);
+  outline-offset: 2px;
+}
+
+/* ---------- MOBILE SAFE AREA ---------- */
+
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 480px) {
+  :root {
+    --screen-pad: 16px;
+  }
+
+  .t-display {
+    font-size: 23px;
+  }
+
+  .t-title {
+    font-size: 20px;
+  }
+}
+
+
+/* =========================================================
+   TAG — TASK 2
+   HOME REDESIGN
+   Visual/interaction treatment only.
+   Existing Home behavior and data flow are preserved.
+   ========================================================= */
+
+/* ---------- HOME CANVAS ---------- */
+
+.screen.tag-home {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #f5f6f8;
+}
+
+/* ---------- MAP HERO ---------- */
+
+.screen.tag-home .tag-map {
+  position: absolute;
+  inset: 0;
+  min-height: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 24% 28%, rgba(255,255,255,.96) 0 7%, transparent 7.5%),
+    radial-gradient(circle at 76% 22%, rgba(255,255,255,.82) 0 9%, transparent 9.5%),
+    linear-gradient(135deg, #edf0f2 0%, #e5e9ec 48%, #f1f3f4 100%);
+}
+
+/* soften existing decorative map layers */
+.screen.tag-home .map-land {
+  opacity: .55;
+  filter: saturate(.25);
+}
+
+.screen.tag-home .map-line {
+  opacity: .65;
+}
+
+/* route gets the strongest map emphasis */
+.screen.tag-home .journey-route {
+  filter: drop-shadow(0 3px 7px rgba(43,186,88,.20));
+}
+
+.screen.tag-home .route-start,
+.screen.tag-home .route-destination {
+  box-shadow:
+    0 0 0 5px rgba(255,255,255,.78),
+    0 4px 12px rgba(20,30,45,.12);
+}
+
+.screen.tag-home .route-start {
+  background: #2bba58;
+}
+
+.screen.tag-home .route-destination {
+  background: #1a1a1a;
+}
+
+/* ---------- FLOATING HOME CONTROLS ---------- */
+
+.screen.tag-home .tag-home-header {
+  position: absolute;
+  z-index: 20;
+  top: max(14px, env(safe-area-inset-top));
+  left: 16px;
+  right: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  pointer-events: none;
+}
+
+.screen.tag-home .tag-home-header > * {
+  pointer-events: auto;
+}
+
+.screen.tag-home .tag-control {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(224,224,224,.92);
+  border-radius: 50%;
+
+  background: rgba(255,255,255,.94);
+  color: #1a1a1a;
+
+  box-shadow: 0 4px 16px rgba(20,30,45,.10);
+  backdrop-filter: blur(12px);
+
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.screen.tag-home .tag-control:active {
+  transform: scale(.95);
+  box-shadow: 0 2px 8px rgba(20,30,45,.08);
+}
+
+/* ---------- JOURNEY CONTEXT ---------- */
+
+.screen.tag-home .journey-context {
+  position: absolute;
+  z-index: 15;
+  top: calc(max(14px, env(safe-area-inset-top)) + 56px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  max-width: calc(100% - 48px);
+  padding: 8px 12px;
+
+  border: 1px solid rgba(224,224,224,.9);
+  border-radius: 999px;
+
+  background: rgba(255,255,255,.92);
+  color: #414141;
+
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+
+  box-shadow: 0 3px 14px rgba(20,30,45,.08);
+  backdrop-filter: blur(12px);
+}
+
+.screen.tag-home .context-dot {
+  width: 7px;
+  height: 7px;
+  min-width: 7px;
+  border-radius: 50%;
+  background: #2bba58;
+  box-shadow: 0 0 0 4px rgba(43,186,88,.12);
+}
+
+/* ---------- YOU MARKER ---------- */
+
+.screen.tag-home .you-marker {
+  filter: drop-shadow(0 5px 10px rgba(20,30,45,.16));
+}
+
+/* ---------- BOTTOM SHEET ---------- */
+
+.screen.tag-home .tag-home-sheet {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  max-height: min(72dvh, 620px);
+  overflow-y: auto;
+
+  padding:
+    10px
+    16px
+    calc(18px + env(safe-area-inset-bottom));
+
+  border-radius: 26px 26px 0 0;
+  border: 1px solid rgba(224,224,224,.92);
+  border-bottom: 0;
+
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 -12px 36px rgba(20,30,45,.13);
+
+  backdrop-filter: blur(16px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen.tag-home .sheet-grabber {
+  width: 38px;
+  height: 4px;
+  margin: 1px auto 18px;
+
+  border-radius: 999px;
+  background: #d4d7da;
+}
+
+.screen.tag-home .sheet-heading {
+  margin-bottom: 16px;
+}
+
+.screen.tag-home .sheet-eyebrow {
+  margin: 0 0 5px;
+
+  color: #8a8d93;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: .07em;
+}
+
+.screen.tag-home .sheet-heading h2,
+.screen.tag-home .sheet-heading h3 {
+  margin: 0;
+
+  color: #1a1a1a;
+  font-size: 22px;
+  line-height: 1.22;
+  font-weight: 700;
+  letter-spacing: -.025em;
+}
+
+/* ---------- JOURNEY INPUTS ---------- */
+
+.screen.tag-home .journey-input {
+  min-height: 58px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 10px;
+  padding: 9px 13px;
+
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+
+  background: #f5f6f8;
+
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.screen.tag-home .journey-input:hover {
+  border-color: #d2d4d7;
+}
+
+.screen.tag-home .journey-input:focus-within {
+  background: #fff;
+  border-color: #2bba58;
+  box-shadow: 0 0 0 3px rgba(43,186,88,.11);
+}
+
+.screen.tag-home .journey-input-icon {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+  background: #fff;
+  color: #2bba58;
+  box-shadow: 0 1px 5px rgba(20,30,45,.06);
+}
+
+.screen.tag-home .journey-input-copy {
+  min-width: 0;
+}
+
+.screen.tag-home .journey-input-copy > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- PRIMARY HOME ACTION ---------- */
+
+.screen.tag-home .tag-home-sheet .btn-primary {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 16px;
+
+  border-radius: 999px;
+  background: #2bba58;
+  border-color: #2bba58;
+
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+
+  box-shadow: 0 7px 18px rgba(43,186,88,.20);
+}
+
+.screen.tag-home .tag-home-sheet .btn-primary:hover {
+  background: #229b48;
+  border-color: #229b48;
+}
+
+.screen.tag-home .tag-home-sheet .btn-primary:active {
+  transform: scale(.985);
+  box-shadow: 0 3px 10px rgba(43,186,88,.18);
+}
+
+/* ---------- HOME SUPPORTING CONTENT ---------- */
+
+.screen.tag-home .tag-home-sheet .card {
+  border-radius: 16px;
+  border-color: #e0e0e0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.screen.tag-home .tag-home-sheet .badge {
+  border-radius: 999px;
+}
+
+.screen.tag-home .tag-home-sheet .t-small {
+  color: #8a8d93;
+}
+
+/* ---------- SMALL MOBILE SCREENS ---------- */
+
+@media (max-width: 380px) {
+  .screen.tag-home .tag-home-sheet {
+    padding-left: 14px;
+    padding-right: 14px;
+    border-radius: 22px 22px 0 0;
+  }
+
+  .screen.tag-home .sheet-heading h2,
+  .screen.tag-home .sheet-heading h3 {
+    font-size: 20px;
+  }
+
+  .screen.tag-home .journey-input {
+    min-height: 54px;
+  }
+}
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .screen.tag-home *,
+  .screen.tag-home *::before,
+  .screen.tag-home *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   TAG — TASK 3
+   DISCOVER REDESIGN
+   Visual treatment only. Existing matching/request logic
+   remains unchanged.
+   ========================================================= */
+
+/* ---------- DISCOVER SCREEN ---------- */
+
+.screen:not(.tag-home) .person-card {
+  width: 100%;
+  position: relative;
+  display: block;
+  text-align: left;
+
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 16px;
+
+  background: #fff;
+  color: #1a1a1a;
+
+  box-shadow: none;
+
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.screen:not(.tag-home) .person-card:hover {
+  transform: translateY(-1px);
+  border-color: #d4d7da;
+  box-shadow: 0 5px 18px rgba(20,30,45,.07);
+}
+
+.screen:not(.tag-home) .person-card:active {
+  transform: scale(.99);
+}
+
+/* ---------- DISCOVER SEARCH ---------- */
+
+.screen:not(.tag-home) .search-box {
+  min-height: 50px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 0 14px;
+
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+
+  background: #f5f6f8;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.screen:not(.tag-home) .search-box:focus-within {
+  background: #fff;
+  border-color: #2bba58;
+  box-shadow: 0 0 0 3px rgba(43,186,88,.11);
+}
+
+.screen:not(.tag-home) .search-box input {
+  min-width: 0;
+  color: #1a1a1a;
+  background: transparent;
+}
+
+.screen:not(.tag-home) .search-box input::placeholder {
+  color: #8a8d93;
+}
+
+/* ---------- FILTER CHIPS ---------- */
+
+.screen:not(.tag-home) .chips {
+  display: flex;
+  gap: 8px;
+
+  overflow-x: auto;
+  padding: 2px 1px 4px;
+
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.screen:not(.tag-home) .chips::-webkit-scrollbar {
+  display: none;
+}
+
+.screen:not(.tag-home) .chips .chip {
+  flex: 0 0 auto;
+
+  min-height: 38px;
+  padding: 0 14px;
+
+  border: 1px solid #e0e0e0;
+  border-radius: 999px;
+
+  background: #fff;
+  color: #414141;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.screen:not(.tag-home) .chips .chip.active {
+  border-color: #2bba58;
+  background: #e8f7ed;
+  color: #247a43;
+}
+
+/* ---------- DISCOVER SECTION HEADER ---------- */
+
+.screen:not(.tag-home) .section-head {
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.screen:not(.tag-home) .section-title {
+  color: #1a1a1a;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+
+/* ---------- PERSON CARD CONTENT ---------- */
+
+.screen:not(.tag-home) .person-card .person-info {
+  min-width: 0;
+}
+
+.screen:not(.tag-home) .person-card .person-name {
+  color: #1a1a1a;
+  font-size: 16px;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.screen:not(.tag-home) .person-card .person-meta {
+  margin-top: 4px;
+
+  color: #8a8d93;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ---------- MATCH / COMPATIBILITY BADGES ---------- */
+
+.screen:not(.tag-home) .person-card .badge {
+  border-radius: 999px;
+  padding: 7px 10px;
+
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 650;
+}
+
+.screen:not(.tag-home) .person-card .badge.success {
+  background: #e8f7ed;
+  color: #247a43;
+}
+
+/* ---------- DISCOVER ROUTE / CONTEXT ---------- */
+
+.screen:not(.tag-home) .person-card .route-row,
+.screen:not(.tag-home) .person-card .request-route {
+  margin-top: 12px;
+  padding-top: 12px;
+
+  border-top: 1px solid #eef0f1;
+}
+
+.screen:not(.tag-home) .person-card .route-dot {
+  box-shadow: 0 0 0 4px rgba(43,186,88,.09);
+}
+
+.screen:not(.tag-home) .person-card .route-dot.end {
+  box-shadow: 0 0 0 4px rgba(26,26,26,.07);
+}
+
+/* ---------- DISCOVER PRIMARY ACTIONS ---------- */
+
+.screen:not(.tag-home) .person-card .btn-primary {
+  min-height: 44px;
+  border-radius: 999px;
+
+  background: #2bba58;
+  border-color: #2bba58;
+
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+
+  box-shadow: 0 4px 12px rgba(43,186,88,.15);
+}
+
+.screen:not(.tag-home) .person-card .btn-primary:active {
+  transform: scale(.985);
+}
+
+/* ---------- DISCOVER EMPTY / ERROR STATES ---------- */
+
+.screen:not(.tag-home) .section .field-error-text {
+  color: #ff3b30;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.screen:not(.tag-home) .section > .t-body {
+  color: #8a8d93;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------- MOBILE DISCOVER RHYTHM ---------- */
+
+@media (max-width: 480px) {
+  .screen:not(.tag-home) .section {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .screen:not(.tag-home) .section.compact {
+    padding-top: 10px;
+    padding-bottom: 8px;
+  }
+
+  .screen:not(.tag-home) .person-card {
+    padding: 15px;
+    border-radius: 15px;
+  }
+}
+
+/* ---------- REDUCED MOTION ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .screen:not(.tag-home) .person-card,
+  .screen:not(.tag-home) .chip,
+  .screen:not(.tag-home) .search-box {
+    transition: none !important;
+  }
+}
+
+
+/* =========================================================
+   TASK 4 — MATCH DETAIL
+   Visual-only polish. No logic/data changes.
+   ========================================================= */
+
+.screen.match-detail,
+.screen:has(.match-hero) {
+  background: var(--bg);
+}
+
+.screen:has(.match-hero) .screen-scroll {
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+
+.screen:has(.match-hero) > .section {
+  width: min(100%, 680px);
+  margin-inline: auto;
+}
+
+/* Match identity / hero */
+.screen:has(.match-hero) .match-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px 4px;
+}
+
+.screen:has(.match-hero) .match-hero .avatar {
+  width: 76px;
+  height: 76px;
+  min-width: 76px;
+  border: 4px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--line);
+  margin-bottom: 14px;
+}
+
+.screen:has(.match-hero) .match-hero h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.screen:has(.match-hero) .match-hero p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Main match information card */
+.screen:has(.match-hero) .match-card {
+  margin: 20px 0 0;
+  padding: 4px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 18px rgba(26, 26, 26, 0.045);
+  overflow: hidden;
+}
+
+.screen:has(.match-hero) .match-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.screen:has(.match-hero) .match-row:last-child {
+  border-bottom: 0;
+}
+
+.screen:has(.match-hero) .match-row > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 17px;
+}
+
+.screen:has(.match-hero) .match-row > strong {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+/* Existing supporting text/card content */
+.screen:has(.match-hero) .card.card-pad {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.screen:has(.match-hero) .card.card-pad .t-body-strong {
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.screen:has(.match-hero) .card.card-pad .t-small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+/* Match badges */
+.screen:has(.match-hero) .badge {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+/* Buttons / primary action */
+.screen:has(.match-hero) .btn-primary,
+.screen:has(.match-hero) button.primary {
+  min-height: 50px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+}
+
+.screen:has(.match-hero) .btn-primary:active,
+.screen:has(.match-hero) button.primary:active {
+  transform: scale(0.985);
+}
+
+/* Secondary actions */
+.screen:has(.match-hero) .btn-secondary,
+.screen:has(.match-hero) button.secondary {
+  min-height: 48px;
+  border-radius: var(--radius-pill);
+}
+
+/* Loading / error states belonging to Match */
+.screen:has(.match-hero) + .screen,
+.screen:has(.match-hero) .field-error-text {
+  line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .screen:has(.match-hero) .match-hero {
+    padding-top: 22px;
+  }
+
+  .screen:has(.match-hero) .match-hero .avatar {
+    width: 68px;
+    height: 68px;
+    min-width: 68px;
+  }
+
+  .screen:has(.match-hero) .match-hero h1 {
+    font-size: 22px;
+  }
+
+  .screen:has(.match-hero) .match-card {
+    padding-inline: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen:has(.match-hero) .btn-primary:active,
+  .screen:has(.match-hero) button.primary:active {
+    transform: none;
+  }
+}
+
+
+/* ============================================================
+   TASK 6 — ACTIVE CONNECTION
+   Scoped to .active-screen so existing screens are untouched.
+   ============================================================ */
+
+.active-screen {
+  background: var(--bg);
+}
+
+.active-screen .active-scroll {
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+
+.active-screen .active-connection-hero {
+  padding: 24px 16px 18px;
+}
+
+.active-screen .active-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.active-screen .active-person-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.active-screen .active-live-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.active-screen .active-live-dot,
+.active-screen .active-route-status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.active-screen .active-person h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -.02em;
+}
+
+.active-screen .active-person p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.active-screen .active-route-card,
+.active-screen .active-details-card,
+.active-screen .active-coordination-card {
+  margin: 0 16px 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.active-screen .active-route-card {
+  padding: 18px;
+}
+
+.active-screen .active-card-kicker {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+.active-screen .active-route {
+  margin-top: 7px;
+  color: var(--text);
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+.active-screen .active-route-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.active-screen .active-route-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-strong);
+}
+
+.active-screen .active-details-card {
+  padding: 17px 18px;
+}
+
+.active-screen .active-details-head {
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.active-screen .active-details-head p {
+  margin: 0;
+}
+
+.active-screen .active-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.active-screen .active-detail {
+  min-width: 0;
+  padding: 14px 12px 2px 0;
+}
+
+.active-screen .active-detail:nth-child(2n) {
+  padding-left: 12px;
+  padding-right: 0;
+  border-left: 1px solid var(--line);
+}
+
+.active-screen .active-detail:nth-child(n + 3) {
+  margin-top: 4px;
+}
+
+.active-screen .active-detail span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.active-screen .active-detail strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 700;
+  text-overflow: ellipsis;
+}
+
+.active-screen .active-coordination-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--accent-soft);
+  border-color: rgba(43, 186, 88, .22);
+}
+
+.active-screen .active-coordination-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--accent-strong);
+}
+
+.active-screen .active-coordination-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.active-screen .active-coordination-copy {
+  min-width: 0;
+}
+
+.active-screen .active-coordination-copy p {
+  margin: 0;
+}
+
+.active-screen .active-coordination-copy .t-small {
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.active-screen .active-actions-section {
+  padding-top: 12px;
+  padding-bottom: 4px;
+}
+
+.active-screen .active-actions-section .btn-primary,
+.active-screen .active-actions-section button.primary {
+  min-height: 50px;
+}
+
+.active-screen .active-actions-section .btn-secondary,
+.active-screen .active-actions-section button.secondary {
+  min-height: 48px;
+}
+
+@media (max-width: 360px) {
+  .active-screen .active-connection-hero {
+    padding-top: 18px;
+  }
+
+  .active-screen .active-person {
+    gap: 11px;
+  }
+
+  .active-screen .active-person h1 {
+    font-size: 20px;
+  }
+
+  .active-screen .active-route-card,
+  .active-screen .active-details-card,
+  .active-screen .active-coordination-card {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .active-screen .active-detail-grid {
+    display: block;
+  }
+
+  .active-screen .active-detail,
+  .active-screen .active-detail:nth-child(2n) {
+    padding: 12px 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .active-screen .active-detail:first-child {
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-screen *,
+  .active-screen *::before,
+  .active-screen *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+
+/* =========================================================
+   TASK 7 — CONTEXTUAL CHAT POLISH
+   Presentation-only layer. Supabase/realtime logic unchanged.
+   ========================================================= */
+
+.chat-screen{
+  min-height:100dvh;
+  background:var(--bg,#fff);
+  overflow:hidden;
+}
+
+.chat-screen > .app-header,
+.chat-screen > header{
+  position:relative;
+  z-index:30;
+}
+
+.chat-content{
+  position:absolute;
+  inset:var(--header-height,64px) 0 92px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:14px 16px 28px;
+  -webkit-overflow-scrolling:touch;
+}
+
+.chat-context{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 2px 16px;
+}
+
+.chat-context-copy{
+  min-width:0;
+  flex:1;
+}
+
+.chat-context-topline{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:var(--text,#1a1a1a);
+  font-size:14px;
+  font-weight:700;
+  line-height:1.3;
+}
+
+.chat-online-dot{
+  width:8px;
+  height:8px;
+  flex:none;
+  border-radius:50%;
+  background:var(--accent,#2bba58);
+  box-shadow:0 0 0 3px var(--accent-soft,#e8f7ed);
+}
+
+.chat-context-copy p{
+  margin:4px 0 0;
+  color:var(--muted,#8a8d93);
+  font-size:12px;
+  line-height:1.4;
+}
+
+.chat-privacy{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px 13px;
+  margin-bottom:18px;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:12px;
+  background:var(--surface-2,#f5f6f8);
+}
+
+.chat-privacy-icon{
+  width:32px;
+  height:32px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:#fff;
+  color:var(--accent-strong,#229b48);
+}
+
+.chat-privacy-icon svg{
+  width:17px;
+  height:17px;
+}
+
+.chat-privacy .t-body-strong{
+  margin:1px 0 0;
+  font-size:13px;
+}
+
+.chat-privacy .t-small{
+  margin:3px 0 0;
+  line-height:1.4;
+}
+
+.chat-state{
+  min-height:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  color:var(--muted,#8a8d93);
+  font-size:13px;
+}
+
+.chat-state p{
+  margin:0;
+}
+
+.chat-loading-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent,#2bba58);
+  animation:tag-chat-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes tag-chat-pulse{
+  0%,100%{opacity:.35;transform:scale(.8)}
+  50%{opacity:1;transform:scale(1)}
+}
+
+.chat-error{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  padding:12px 13px;
+  margin-bottom:16px;
+  border:1px solid #ffd7d4;
+  border-radius:12px;
+  background:#fff7f6;
+  color:#b42318;
+  font-size:13px;
+  line-height:1.4;
+}
+
+.chat-error svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  margin-top:1px;
+}
+
+.chat-empty{
+  max-width:330px;
+  margin:34px auto;
+  padding:24px 20px;
+  text-align:center;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:16px;
+  background:#fff;
+}
+
+.chat-empty-icon{
+  width:46px;
+  height:46px;
+  display:grid;
+  place-items:center;
+  margin:0 auto 14px;
+  border-radius:14px;
+  background:var(--accent-soft,#e8f7ed);
+  color:var(--accent-strong,#229b48);
+}
+
+.chat-empty-icon svg{
+  width:22px;
+  height:22px;
+}
+
+.chat-empty h2{
+  margin:0;
+  color:var(--text,#1a1a1a);
+  font-size:16px;
+  line-height:1.3;
+}
+
+.chat-empty p{
+  margin:7px 0 0;
+  color:var(--muted,#8a8d93);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.chat-thread{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:4px 0 20px;
+}
+
+.chat-message-row{
+  display:flex;
+  align-items:flex-end;
+  gap:7px;
+  width:100%;
+}
+
+.chat-message-row-mine{
+  justify-content:flex-end;
+}
+
+.chat-message-row-theirs{
+  justify-content:flex-start;
+}
+
+.chat-message-row .avatar{
+  flex:none;
+  margin-bottom:2px;
+}
+
+.chat-message{
+  max-width:min(78%,320px);
+  padding:10px 12px 7px;
+  border-radius:16px;
+  box-sizing:border-box;
+}
+
+.chat-message-theirs{
+  background:var(--surface-2,#f5f6f8);
+  border:1px solid var(--line,#e0e0e0);
+  border-bottom-left-radius:5px;
+}
+
+.chat-message-mine{
+  background:var(--accent,#2bba58);
+  color:#fff;
+  border-bottom-right-radius:5px;
+}
+
+.chat-message-body{
+  margin:0;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  font-size:14px;
+  line-height:1.45;
+}
+
+.chat-message-time{
+  margin:4px 0 0;
+  text-align:right;
+  font-size:10px;
+  line-height:1.2;
+  opacity:.58;
+}
+
+.chat-message-mine .chat-message-time{
+  color:rgba(255,255,255,.9);
+}
+
+.chat-composer-wrap{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:25;
+  padding:8px 16px calc(9px + env(safe-area-inset-bottom));
+  background:rgba(255,255,255,.96);
+  border-top:1px solid var(--line,#e0e0e0);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+
+.chat-composer{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  min-height:48px;
+  padding:4px 4px 4px 14px;
+  box-sizing:border-box;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:16px;
+  background:#fff;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+
+.chat-composer:focus-within{
+  border-color:rgba(43,186,88,.55);
+  box-shadow:0 0 0 3px rgba(43,186,88,.09);
+}
+
+.chat-composer-input{
+  flex:1;
+  min-width:0;
+  height:40px;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  color:var(--text,#1a1a1a);
+  font:inherit;
+  font-size:14px;
+}
+
+.chat-composer-input::placeholder{
+  color:#a0a3a8;
+}
+
+.chat-send-button{
+  width:40px;
+  height:40px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:12px;
+  background:var(--accent,#2bba58);
+  color:#fff;
+  cursor:pointer;
+  transition:transform .15s ease,opacity .15s ease,background .15s ease;
+}
+
+.chat-send-button svg{
+  width:18px;
+  height:18px;
+}
+
+.chat-send-button:active:not(:disabled){
+  transform:scale(.94);
+}
+
+.chat-send-button:disabled{
+  opacity:.38;
+  cursor:not-allowed;
+}
+
+.chat-composer-hint{
+  margin:5px 3px 0;
+  color:#a0a3a8;
+  font-size:10px;
+  line-height:1.2;
+  text-align:center;
+}
+
+@media (max-width:380px){
+  .chat-content{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .chat-composer-wrap{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .chat-message{
+    max-width:82%;
+  }
+
+  .chat-privacy{
+    padding:11px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .chat-loading-dot,
+  .chat-send-button,
+  .chat-composer{
+    animation:none;
+    transition:none;
+  }
+}
+
+
+/* =========================================================
+   TASK 8 — ACTIVITY + PROFILE POLISH
+   ========================================================= */
+
+.activity-screen{
+  background:var(--bg,#fff);
+}
+
+.activity-scroll{
+  padding-bottom:calc(88px + env(safe-area-inset-bottom));
+}
+
+.activity-intro{
+  padding:20px 16px 18px;
+}
+
+.activity-eyebrow,
+.profile-eyebrow{
+  margin:0 0 6px;
+  color:var(--accent-strong,#229b48);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+
+.activity-intro h1{
+  margin:0;
+  color:var(--text,#1a1a1a);
+  font-size:26px;
+  line-height:1.15;
+  letter-spacing:-.02em;
+}
+
+.activity-intro>p:last-child{
+  max-width:330px;
+  margin:7px 0 0;
+  color:var(--muted,#8a8d93);
+  font-size:13px;
+  line-height:1.45;
+}
+
+.activity-error,
+.profile-inline-error{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin:0 16px 14px;
+  padding:12px 13px;
+  border:1px solid #ffd7d4;
+  border-radius:12px;
+  background:#fff7f6;
+  color:#b42318;
+}
+
+.activity-error svg,
+.profile-inline-error svg{
+  width:17px;
+  height:17px;
+  flex:none;
+}
+
+.activity-error span,
+.profile-inline-error small{
+  font-size:12px;
+  line-height:1.4;
+}
+
+.activity-loading{
+  min-height:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  color:var(--muted,#8a8d93);
+  font-size:13px;
+}
+
+.activity-loading p{
+  margin:0;
+}
+
+.activity-loading-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--accent,#2bba58);
+  animation:tag-activity-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes tag-activity-pulse{
+  0%,100%{opacity:.35;transform:scale(.8)}
+  50%{opacity:1;transform:scale(1)}
+}
+
+.activity-empty{
+  margin:16px;
+  padding:28px 20px;
+  text-align:center;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:16px;
+  background:#fff;
+}
+
+.activity-empty-icon{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  margin:0 auto 14px;
+  border-radius:15px;
+  background:var(--accent-soft,#e8f7ed);
+  color:var(--accent-strong,#229b48);
+}
+
+.activity-empty h2{
+  margin:0;
+  font-size:17px;
+}
+
+.activity-empty p{
+  max-width:300px;
+  margin:7px auto 18px;
+  color:var(--muted,#8a8d93);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.activity-empty .btn{
+  width:100%;
+}
+
+.activity-list{
+  display:flex;
+  flex-direction:column;
+  margin:0 16px;
+  border-top:1px solid var(--line,#e0e0e0);
+}
+
+.activity-item{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  padding:15px 2px;
+  border-bottom:1px solid var(--line,#e0e0e0);
+}
+
+.activity-item-icon{
+  width:38px;
+  height:38px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  margin-top:1px;
+  border-radius:12px;
+  background:var(--surface-2,#f5f6f8);
+  color:#73777d;
+}
+
+.activity-item-icon-accepted,
+.activity-item-icon-active{
+  background:var(--accent-soft,#e8f7ed);
+  color:var(--accent-strong,#229b48);
+}
+
+.activity-item-copy{
+  min-width:0;
+  flex:1;
+}
+
+.activity-item-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.activity-item-head p{
+  min-width:0;
+  margin:1px 0 0;
+  color:var(--text,#1a1a1a);
+  font-size:14px;
+  font-weight:700;
+  line-height:1.35;
+}
+
+.activity-item-head time{
+  flex:none;
+  margin-top:2px;
+  color:#9a9da2;
+  font-size:10px;
+  white-space:nowrap;
+}
+
+.activity-item-body{
+  margin:5px 0 0;
+  color:var(--muted,#8a8d93);
+  font-size:12px;
+  line-height:1.45;
+}
+
+/* Profile */
+
+.profile-screen{
+  background:var(--bg,#fff);
+}
+
+.profile-scroll{
+  padding-bottom:32px;
+}
+
+.profile-hero{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:22px 16px 18px;
+}
+
+.profile-avatar-wrap{
+  position:relative;
+  flex:none;
+}
+
+.profile-avatar-check{
+  position:absolute;
+  right:-2px;
+  bottom:-1px;
+  width:19px;
+  height:19px;
+  display:grid;
+  place-items:center;
+  border:2px solid #fff;
+  border-radius:50%;
+  background:var(--accent,#2bba58);
+  color:#fff;
+}
+
+.profile-hero-copy{
+  min-width:0;
+}
+
+.profile-hero .profile-name{
+  margin:0;
+  color:var(--text,#1a1a1a);
+  font-size:22px;
+  line-height:1.2;
+}
+
+.profile-hero .profile-bio{
+  max-width:270px;
+  margin:5px 0 0;
+  color:var(--muted,#8a8d93);
+  font-size:12px;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.profile-trust-card-v2{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin:0 16px 14px;
+  padding:13px;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:15px;
+  background:var(--surface-2,#f5f6f8);
+}
+
+.profile-trust-icon{
+  width:38px;
+  height:38px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#fff;
+  color:var(--accent-strong,#229b48);
+}
+
+.profile-trust-copy{
+  min-width:0;
+  flex:1;
+}
+
+.profile-card-kicker{
+  margin:0;
+  color:#96999e;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.11em;
+}
+
+.profile-trust-copy strong{
+  display:block;
+  margin-top:2px;
+  font-size:14px;
+}
+
+.profile-trust-copy span{
+  display:block;
+  margin-top:2px;
+  color:var(--muted,#8a8d93);
+  font-size:11px;
+  line-height:1.35;
+}
+
+.profile-commute-card{
+  margin:0 16px 18px;
+  padding:15px;
+  border:1px solid rgba(43,186,88,.22);
+  border-radius:16px;
+  background:var(--accent-soft,#e8f7ed);
+}
+
+.profile-card-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.profile-card-heading h2{
+  max-width:230px;
+  margin:4px 0 0;
+  font-size:16px;
+  line-height:1.3;
+}
+
+.profile-active-pill{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex:none;
+  padding:6px 8px;
+  border-radius:999px;
+  background:#fff;
+  color:var(--accent-strong,#229b48);
+  font-size:10px;
+  font-weight:700;
+}
+
+.profile-active-pill span{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--accent,#2bba58);
+}
+
+.profile-commute-meta{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(43,186,88,.16);
+}
+
+.profile-commute-meta span{
+  display:block;
+  color:#718078;
+  font-size:10px;
+}
+
+.profile-commute-meta strong{
+  display:block;
+  margin-top:3px;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.profile-group-v2{
+  padding-top:4px;
+  padding-bottom:8px;
+}
+
+.profile-list{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  border:1px solid var(--line,#e0e0e0);
+  border-radius:15px;
+  background:#fff;
+}
+
+.profile-list .account-row{
+  min-height:66px;
+  padding:10px 13px;
+  border:0;
+  border-bottom:1px solid var(--line,#e0e0e0);
+  border-radius:0;
+}
+
+.profile-list .account-row:last-child{
+  border-bottom:0;
+}
+
+.profile-list .account-row:active{
+  background:var(--surface-2,#f5f6f8);
+}
+
+.profile-list .account-row-icon{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  background:var(--surface-2,#f5f6f8);
+}
+
+.profile-list .account-row-copy strong{
+  font-size:13px;
+}
+
+.profile-list .account-row-copy small{
+  margin-top:2px;
+  font-size:11px;
+  line-height:1.35;
+}
+
+.profile-danger{
+  padding-top:8px;
+}
+
+.profile-danger .account-row{
+  min-height:60px;
+  background:#fffafa;
+  border:1px solid rgba(190,50,50,.16);
+  border-radius:15px;
+}
+
+.profile-danger .account-row-icon{
+  background:#fff0ef;
+  color:#b42318;
+}
+
+.profile-danger .account-row-copy strong{
+  color:#a5221b;
+}
+
+.profile-danger .account-row-copy small{
+  color:#a97874;
+}
+
+.profile-footer-note{
+  margin:6px 16px 10px;
+  text-align:center;
+  color:#b0b2b5;
+  font-size:10px;
+}
+
+@media (max-width:380px){
+  .activity-intro{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .activity-list,
+  .activity-error,
+  .activity-empty{
+    margin-left:12px;
+    margin-right:12px;
+  }
+
+  .profile-hero{
+    padding-left:12px;
+    padding-right:12px;
+  }
+
+  .profile-trust-card-v2,
+  .profile-commute-card{
+    margin-left:12px;
+    margin-right:12px;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .activity-loading-dot{
+    animation:none;
+  }
+}
+
+/* =========================================================
+   TASK 9 — MOBILE INTERACTION PASS
+   CSS / interaction only — no product or data changes
+   ========================================================= */
+
+/* ---------- Global mobile interaction ---------- */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-x: none;
+}
+
+body {
+  overscroll-behavior-x: none;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+a {
+  touch-action: manipulation;
+}
+
+/* Keep every intentional interactive control comfortably tappable. */
+button:not(.icon-button),
+.account-row,
+.bottom-nav-item,
+.filter-chip,
+.chip,
+.tag-chip {
+  min-height: 44px;
+}
+
+/* ---------- Press feedback ---------- */
+
+button:not(:disabled),
+.account-row,
+.bottom-nav-item,
+.filter-chip,
+.chip,
+.tag-chip,
+.activity-item,
+.match-card,
+.person-card,
+.discover-card,
+.profile-list .account-row {
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+button:not(:disabled):active,
+.account-row:active,
+.bottom-nav-item:active,
+.filter-chip:active,
+.chip:active,
+.tag-chip:active {
+  transform: scale(.985);
+}
+
+.activity-item:active,
+.match-card:active,
+.person-card:active,
+.discover-card:active,
+.profile-list .account-row:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Keyboard / input ergonomics ---------- */
+
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+textarea {
+  resize: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: .72;
+}
+
+/* ---------- Fixed bottom navigation ---------- */
+
+.bottom-nav {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.screen-scroll {
+  min-height: 0;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- Chat keyboard-safe layout ---------- */
+
+.chat-screen {
+  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.chat-screen .chat-content {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-screen .chat-composer-wrap {
+  flex-shrink: 0;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+/* ---------- Full-height mobile screens ---------- */
+
+.screen {
+  min-height: 100dvh;
+}
+
+.screen-scroll {
+  padding-bottom: max(
+    88px,
+    calc(72px + env(safe-area-inset-bottom))
+  );
+}
+
+/* Screens with their own fixed bottom action area. */
+.chat-screen .screen-scroll,
+.active-screen .screen-scroll {
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+/* ---------- Prevent accidental horizontal overflow ---------- */
+
+.screen,
+.screen-scroll,
+.section,
+.card,
+.activity-item,
+.profile-hero,
+.profile-commute-card,
+.profile-list,
+.match-card,
+.match-hero,
+.chat-content,
+.chat-context {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.profile-name,
+.profile-bio,
+.activity-item-content,
+.activity-item-top,
+.account-row-copy,
+.match-row,
+.chat-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Activity ---------- */
+
+.activity-screen .activity-section {
+  padding-bottom: 24px;
+}
+
+.activity-item {
+  min-width: 0;
+}
+
+.activity-item-top {
+  gap: 10px;
+}
+
+.activity-item-top h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.activity-item-top time {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* ---------- Profile ---------- */
+
+.profile-screen .profile-scroll {
+  padding-bottom: max(
+    104px,
+    calc(88px + env(safe-area-inset-bottom))
+  );
+}
+
+.profile-hero {
+  min-width: 0;
+}
+
+.profile-hero-copy {
+  min-width: 0;
+}
+
+.profile-commute-head {
+  min-width: 0;
+}
+
+.profile-commute-head > div {
+  min-width: 0;
+}
+
+.profile-commute-head h2 {
+  overflow-wrap: anywhere;
+}
+
+.profile-list .account-row {
+  width: 100%;
+  text-align: left;
+}
+
+/* ---------- Discover ---------- */
+
+.discover-screen,
+.discover-screen .screen-scroll {
+  min-width: 0;
+}
+
+.discover-search,
+.discover-search input {
+  min-width: 0;
+}
+
+.discover-filter-row,
+.filter-row {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.discover-filter-row::-webkit-scrollbar,
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Match / Active ---------- */
+
+.match-hero,
+.active-connection-hero {
+  min-width: 0;
+}
+
+.match-card,
+.active-screen .card {
+  min-width: 0;
+}
+
+.match-row strong,
+.active-screen strong {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Small Android screens ---------- */
+
+@media (max-width: 380px) {
+
+  .screen-scroll {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .header {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .bottom-nav {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .activity-item {
+    gap: 10px;
+  }
+
+  .activity-item-icon {
+    flex: 0 0 38px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .activity-item-top {
+    display: block;
+  }
+
+  .activity-item-top time {
+    display: block;
+    margin-top: 3px;
+  }
+
+  .profile-hero {
+    gap: 12px;
+  }
+
+  .profile-hero .profile-name {
+    font-size: 21px;
+  }
+
+  .profile-commute-head {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .profile-active-pill {
+    flex-shrink: 0;
+  }
+
+  .account-row {
+    min-height: 52px;
+  }
+
+  .account-row-copy strong {
+    font-size: 14px;
+  }
+
+  .account-row-copy small {
+    line-height: 1.35;
+  }
+
+  .chat-composer {
+    gap: 8px;
+  }
+
+  .chat-composer textarea {
+    min-width: 0;
+  }
+
+}
+
+/* ---------- Very narrow devices ---------- */
+
+@media (max-width: 340px) {
+
+  .screen-scroll {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .profile-hero {
+    align-items: flex-start;
+  }
+
+  .profile-hero .avatar {
+    flex: 0 0 auto;
+  }
+
+  .profile-card-subtitle,
+  .profile-bio,
+  .activity-subtitle {
+    font-size: 13px;
+  }
+
+  .account-row-copy small {
+    display: block;
+    max-width: 210px;
+  }
+
+}
+
+/* ---------- Focus / accessibility ---------- */
+
+:focus-visible {
+  outline: 3px solid rgba(43, 186, 88, .28);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* ---------- Prevent iOS/Android text selection on controls ---------- */
+
+button,
+.bottom-nav-item,
+.filter-chip,
+.chip,
+.tag-chip,
+.account-row {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
